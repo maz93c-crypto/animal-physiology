@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محاكاة فسيولوجيا القلب والكلية</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg-deep: #040d1a;
+    --bg-panel: #0a1628;
+    --bg-card: #0f1e35;
+    --bg-card-hover: #132440;
+    --accent-red: #e63946;
+    --accent-cyan: #00d4ff;
+    --accent-gold: #ffd166;
+    --accent-green: #06d6a0;
+    --accent-purple: #9b5de5;
+    --text-primary: #e8f0fe;
+    --text-secondary: #7a9cc8;
+    --text-muted: #3d5a7a;
+    --border: rgba(0, 212, 255, 0.12);
+    --border-glow: rgba(0, 212, 255, 0.3);
+    --heart-base: #e63946;
+    --shadow-glow: 0 0 30px rgba(0, 212, 255, 0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app-wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 30px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 300px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan));
+  }
+
+  .header-title h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--text-primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+  }
+
+  .header-title p {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(6, 214, 160, 0.1);
+    border: 1px solid rgba(6, 214, 160, 0.3);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--accent-green);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .pulse-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    animation: pulse-glow 1.5s infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(6,214,160,0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(6,214,160,0); }
+  }
+
+  /* Main grid */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+  }
+
+  /* Control Panel */
+  .control-panel {
+    grid-row: 1 / 3;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .control-panel::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--accent-purple), transparent);
+  }
+
+  .panel-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Heart Visual */
+  .heart-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0 28px;
+  }
+
+  .heart-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .heart-svg {
+    animation: heartbeat 0.8s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px rgba(230, 57, 70, 0.6));
+    transition: animation-duration 0.3s;
+  }
+
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    15% { transform: scale(1.18); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.1); }
+    60% { transform: scale(1); }
+  }
+
+  .heart-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(230, 57, 70, 0.3);
+    animation: ring-pulse 0.8s ease-out infinite;
+  }
+
+  .heart-ring:nth-child(2) { width: 80px; height: 80px; animation-delay: 0.1s; }
+  .heart-ring:nth-child(3) { width: 110px; height: 110px; animation-delay: 0.2s; opacity: 0.5; }
+
+  @keyframes ring-pulse {
+    0% { transform: scale(0.8); opacity: 0.8; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+
+  .bpm-display {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .bpm-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--accent-red);
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(230, 57, 70, 0.4);
+  }
+
+  .bpm-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Sliders */
+  .slider-group {
+    margin-bottom: 22px;
+  }
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .slider-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .slider-name span {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 300;
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .slider-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 6px;
+    min-width: 48px;
+    text-align: center;
+  }
+
+  .val-adrenaline { background: rgba(230,57,70,0.15); color: var(--accent-red); }
+  .val-acetylcholine { background: rgba(0,212,255,0.1); color: var(--accent-cyan); }
+  .val-fluid { background: rgba(255,209,102,0.1); color: var(--accent-gold); }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  input[type="range"].adrenaline-slider {
+    background: linear-gradient(90deg, var(--accent-red) 0%, rgba(230,57,70,0.2) 100%);
+  }
+
+  input[type="range"].acetylcholine-slider {
+    background: linear-gradient(90deg, var(--accent-cyan) 0%, rgba(0,212,255,0.2) 100%);
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--text-primary);
+    border: 2px solid var(--accent-cyan);
+    box-shadow: 0 0 8px rgba(0,212,255,0.4);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 16px rgba(0,212,255,0.6);
+  }
+
+  /* Buttons */
+  .btn-fluid {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, rgba(255,209,102,0.15), rgba(255,209,102,0.05));
+    border: 1px solid rgba(255,209,102,0.4);
+    border-radius: 10px;
+    color: var(--accent-gold);
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-fluid:hover {
+    background: linear-gradient(135deg, rgba(255,209,102,0.25), rgba(255,209,102,0.1));
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 20px rgba(255,209,102,0.2);
+    transform: translateY(-1px);
+  }
+
+  .btn-fluid:active { transform: translateY(0); }
+
+  .btn-reset {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+  }
+
+  .btn-reset:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  /* Monitors grid */
+  .monitors-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .monitor-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .monitor-card:hover {
+    border-color: var(--border-glow);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .monitor-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .monitor-card.bp::before { background: linear-gradient(90deg, var(--accent-cyan), transparent); }
+  .monitor-card.urine::before { background: linear-gradient(90deg, var(--accent-green), transparent); }
+  .monitor-card.gfr::before { background: linear-gradient(90deg, var(--accent-purple), transparent); }
+
+  .monitor-icon {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .monitor-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .monitor-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 600;
+    line-height: 1.1;
+    transition: color 0.4s;
+  }
+
+  .monitor-unit {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  .monitor-delta {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .delta-up { background: rgba(230,57,70,0.15); color: var(--accent-red); }
+  .delta-down { background: rgba(0,212,255,0.1); color: var(--accent-cyan); }
+  .delta-neutral { background: rgba(122, 156, 200, 0.1); color: var(--text-secondary); }
+
+  /* Chart area */
+  .chart-area {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+  }
+
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .chart-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .chart-subtitle {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  .chart-canvas-wrap {
+    position: relative;
+    height: 180px;
+  }
+
+  /* AI Insight */
+  .ai-insight {
+    background: var(--bg-panel);
+    border: 1px solid rgba(155, 93, 229, 0.25);
+    border-radius: 16px;
+    padding: 24px;
+    grid-column: 2;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ai-insight::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(155,93,229,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .insight-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(155,93,229,0.2);
+  }
+
+  .ai-badge {
+    background: linear-gradient(135deg, rgba(155,93,229,0.2), rgba(155,93,229,0.05));
+    border: 1px solid rgba(155,93,229,0.4);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--accent-purple);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .insight-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  .insight-body {
+    font-size: 0.85rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+  }
+
+  .insight-body strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .insight-body .highlight-red { color: var(--accent-red); }
+  .insight-body .highlight-cyan { color: var(--accent-cyan); }
+  .insight-body .highlight-green { color: var(--accent-green); }
+  .insight-body .highlight-gold { color: var(--accent-gold); }
+  .insight-body .highlight-purple { color: var(--accent-purple); }
+
+  .mechanism-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding: 12px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    direction: rtl;
+  }
+
+  .mech-step {
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .mech-arrow {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    transform: scaleX(-1);
+  }
+
+  .mech-red { background: rgba(230,57,70,0.15); color: var(--accent-red); border: 1px solid rgba(230,57,70,0.3); }
+  .mech-cyan { background: rgba(0,212,255,0.1); color: var(--accent-cyan); border: 1px solid rgba(0,212,255,0.2); }
+  .mech-green { background: rgba(6,214,160,0.1); color: var(--accent-green); border: 1px solid rgba(6,214,160,0.2); }
+  .mech-purple { background: rgba(155,93,229,0.1); color: var(--accent-purple); border: 1px solid rgba(155,93,229,0.2); }
+  .mech-gold { background: rgba(255,209,102,0.1); color: var(--accent-gold); border: 1px solid rgba(255,209,102,0.2); }
+  .mech-neutral { background: rgba(122,156,200,0.08); color: var(--text-secondary); border: 1px solid var(--border); }
+
+  /* Kidney visual */
+  .kidney-panel {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .kidney-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .kidney-stat {
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+  }
+
+  .ks-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .ks-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 3px;
+    transition: color 0.4s;
+  }
+
+  /* Renin-Angiotensin indicator */
+  .raas-indicator {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .raas-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .raas-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .raas-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent-gold), var(--accent-red));
+    transition: width 0.5s ease;
+  }
+
+  .raas-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent-gold);
+    min-width: 32px;
+    text-align: left;
+  }
+
+  /* fluid bolus animation */
+  .fluid-wave {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+    transform: translateX(-100%);
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  .fluid-wave.animate {
+    animation: fluid-sweep 0.8s ease-out;
+  }
+
+  @keyframes fluid-sweep {
+    0% { transform: translateX(-100%); opacity: 1; }
+    100% { transform: translateX(100%); opacity: 0; }
+  }
+
+  /* Alert badge */
+  .alert-zone {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 12px;
+    border: 1px solid;
+  }
+
+  .alert-zone.warning {
+    display: flex;
+    background: rgba(255,209,102,0.08);
+    border-color: rgba(255,209,102,0.3);
+    color: var(--accent-gold);
+  }
+
+  .alert-zone.danger {
+    display: flex;
+    background: rgba(230,57,70,0.08);
+    border-color: rgba(230,57,70,0.3);
+    color: var(--accent-red);
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .control-panel { grid-row: auto; }
+    .monitors-grid { grid-template-columns: 1fr 1fr; }
+    .ai-insight { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="fluid-wave" id="fluidWave"></div>
+
+<div class="app-wrapper">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-title">
+      <h1>محاكاة فسيولوجيا القلب والكلية</h1>
+      <p>نموذج تفاعلي — استكشف سيناريوهات "ماذا لو" الفسيولوجية</p>
+    </div>
+    <div class="status-badge">
+      <div class="pulse-dot"></div>
+      محاكاة نشطة
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+      <div class="panel-title">لوحة التحكم</div>
+
+      <!-- Heart Animation -->
+      <div class="heart-container">
+        <div class="heart-wrapper">
+          <div class="heart-ring"></div>
+          <div class="heart-ring"></div>
+          <svg class="heart-svg" id="heartSvg" width="60" height="55" viewBox="0 0 100 90">
+            <path d="M50 85 C50 85 5 55 5 30 C5 15 17 5 30 5 C38 5 45 10 50 18 C55 10 62 5 70 5 C83 5 95 15 95 30 C95 55 50 85 50 85Z" fill="#e63946"/>
+            <path d="M50 75 C50 75 12 50 12 30 C12 18 22 12 32 12 C40 12 46 17 50 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="bpm-display">
+        <div class="bpm-value" id="bpmDisplay">75</div>
+        <div class="bpm-label">ضربة / دقيقة · BPM</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Adrenaline Slider -->
+      <div class="slider-group">
+        <div class="slider-header">
+          <div class="slider-name">
+            الأدرينالين
+            <span>Adrenaline (Epinephrine)</span>
+          </div>
+          <div class="slider-val val-adrenaline" id="adrVal">0</div>
+        </div>
+        <input type="range" class="adrenaline-slider" id="adrSlider" min="0" max="10" value="0" step="0.5">
+      </div>
+
+      <!-- Acetylcholine Slider -->
+      <div class="slider-group">
+        <div class="slider-header">
+          <div class="slider-name">
+            الأستيل كولين
+            <span>Acetylcholine (Parasympathetic)</span>
+          </div>
+          <div class="slider-val val-acetylcholine" id="achVal">0</div>
+        </div>
+        <input type="range" class="acetylcholine-slider" id="achSlider" min="0" max="10" value="0" step="0.5">
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Fluid Bolus -->
+      <button class="btn-fluid" id="fluidBtn" onclick="applyFluidBolus()">
+        <span>💧</span>
+        إضافة محلول وريدي (Fluid Bolus)
+      </button>
+      <button class="btn-reset" onclick="resetAll()">↺ إعادة تعيين الحالة الطبيعية</button>
+
+      <div id="alertZone" class="alert-zone"></div>
+    </div>
+
+    <!-- Monitors Grid -->
+    <div class="monitors-grid">
+      <!-- BP Card -->
+      <div class="monitor-card bp">
+        <span class="monitor-icon">🩺</span>
+        <div class="monitor-label">ضغط الدم · Blood Pressure</div>
+        <div class="monitor-value" id="bpDisplay" style="color: var(--accent-cyan);">
+          120<small style="font-size:0.9rem;">/</small>80
+        </div>
+        <div class="monitor-unit">ملم زئبق · mmHg</div>
+        <div class="monitor-delta delta-neutral" id="bpDelta">—</div>
+      </div>
+
+      <!-- Urine Card -->
+      <div class="monitor-card urine">
+        <span class="monitor-icon">💧</span>
+        <div class="monitor-label">إنتاج البول · Urine Output</div>
+        <div class="monitor-value" id="urineDisplay" style="color: var(--accent-green);">1.0</div>
+        <div class="monitor-unit">مل / دقيقة · ml/min</div>
+        <div class="monitor-delta delta-neutral" id="urineDelta">—</div>
+      </div>
+
+      <!-- GFR Card -->
+      <div class="monitor-card gfr">
+        <span class="monitor-icon">🔬</span>
+        <div class="monitor-label">معدل الترشيح الكبيبي · GFR</div>
+        <div class="monitor-value" id="gfrDisplay" style="color: var(--accent-purple);">120</div>
+        <div class="monitor-unit">مل / دقيقة · ml/min</div>
+        <div class="monitor-delta delta-neutral" id="gfrDelta">—</div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-area">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">مخطط المؤشرات الحيوية الحي · Live Vitals Chart</div>
+          <div class="chart-subtitle">تتبع زمني للنبض وضغط الدم الانقباضي</div>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--accent-red);"></div>
+            BPM
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--accent-cyan);"></div>
+            ضغط انقباضي
+          </div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="vitalsChart"></canvas>
+      </div>
+    </div>
+
+    <!-- AI Insight -->
+    <div class="ai-insight">
+      <div class="insight-header">
+        <div class="ai-badge">⚗ تحليل</div>
+        <div class="insight-title" id="insightTitle">الحالة الفسيولوجية الطبيعية</div>
+      </div>
+      <div class="insight-body" id="insightBody">
+        يعكس النظام حالة الراحة الفسيولوجية الطبيعية. تعمل <strong>العقدة الجيبية الأذينية (SA Node)</strong> كضانع خطو بمعدل <span class="highlight-cyan">75 ضربة/دقيقة</span>، تحت تأثير متوازن بين الجهاز العصبي الودي والجهاز العصبي نظير الودي (العصب الحائر).
+        <br><br>
+        تُرشَّح الكليتان <span class="highlight-green">180 لتراً</span> من البلازما يومياً، ويُعاد امتصاص 99% منها، فلا يخرج إلا حوالي <span class="highlight-cyan">1.5 لتر/يوم</span> على شكل بول.
+      </div>
+
+      <div class="mechanism-flow" id="mechanismFlow">
+        <span class="mech-step mech-neutral">حالة راحة</span>
+        <span class="mech-arrow">←</span>
+        <span class="mech-step mech-cyan">SA Node: 75 BPM</span>
+        <span class="mech-arrow">←</span>
+        <span class="mech-step mech-green">GFR طبيعي</span>
+        <span class="mech-arrow">←</span>
+        <span class="mech-step mech-neutral">البول: 1 مل/د</span>
+      </div>
+
+      <div class="kidney-panel">
+        <div class="kidney-stats">
+          <div class="kidney-stat">
+            <div class="ks-label">تنشيط RAAS</div>
+            <div class="ks-value" id="raasVal" style="color: var(--accent-gold);">منخفض</div>
+          </div>
+          <div class="kidney-stat">
+            <div class="ks-label">إفراز الرينين</div>
+            <div class="ks-value" id="reninVal" style="color: var(--accent-purple);">طبيعي</div>
+          </div>
+          <div class="kidney-stat">
+            <div class="ks-label">أنجيوتنسين II</div>
+            <div class="ks-value" id="angioVal" style="color: var(--accent-red);">منخفض</div>
+          </div>
+          <div class="kidney-stat">
+            <div class="ks-label">الألدوستيرون</div>
+            <div class="ks-value" id="aldoVal" style="color: var(--accent-cyan);">طبيعي</div>
+          </div>
+        </div>
+        <div class="raas-indicator">
+          <span class="raas-label">تنشيط RAAS</span>
+          <div class="raas-bar-wrap">
+            <div class="raas-bar-fill" id="raasBar" style="width: 15%;"></div>
+          </div>
+          <span class="raas-val" id="raasPercent">15%</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ========== State ==========
+const state = {
+  adrenaline: 0,
+  acetylcholine: 0,
+  fluidBoluses: 0,
+  time: 0
+};
+
+const BASE = {
+  bpm: 75,
+  systolic: 120,
+  diastolic: 80,
+  urine: 1.0,
+  gfr: 120
+};
+
+// ========== Chart Setup ==========
+const ctx = document.getElementById('vitalsChart').getContext('2d');
+const maxPoints = 40;
+const labels = Array.from({length: maxPoints}, (_, i) => '');
+const bpmData = Array(maxPoints).fill(BASE.bpm);
+const bpData = Array(maxPoints).fill(BASE.systolic);
+
+const vitalsChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'BPM',
+        data: bpmData,
+        borderColor: 'rgba(230, 57, 70, 0.9)',
+        backgroundColor: 'rgba(230, 57, 70, 0.05)',
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.4,
+        fill: true,
+        yAxisID: 'y'
+      },
+      {
+        label: 'Systolic BP',
+        data: bpData,
+        borderColor: 'rgba(0, 212, 255, 0.8)',
+        backgroundColor: 'rgba(0, 212, 255, 0.04)',
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.4,
+        fill: true,
+        yAxisID: 'y1'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 200 },
+    plugins: { legend: { display: false }, tooltip: {
+      backgroundColor: 'rgba(10,22,40,0.9)',
+      borderColor: 'rgba(0,212,255,0.2)',
+      borderWidth: 1,
+      titleColor: '#e8f0fe',
+      bodyColor: '#7a9cc8',
+      titleFont: { family: 'JetBrains Mono' },
+      bodyFont: { family: 'JetBrains Mono' }
+    }},
+    scales: {
+      x: { display: false },
+      y: {
+        min: 40, max: 180,
+        position: 'right',
+        grid: { color: 'rgba(0,212,255,0.05)' },
+        ticks: { color: 'rgba(230,57,70,0.6)', font: { family: 'JetBrains Mono', size: 10 }, stepSize: 20 },
+        border: { display: false }
+      },
+      y1: {
+        min: 60, max: 220,
+        position: 'left',
+        grid: { display: false },
+        ticks: { color: 'rgba(0,212,255,0.5)', font: { family: 'JetBrains Mono', size: 10 }, stepSize: 30 },
+        border: { display: false }
+      }
+    }
+  }
+});
+
+// ========== Calculate Physiology ==========
+function calcPhysiology() {
+  const adr = state.adrenaline;
+  const ach = state.acetylcholine;
+  const fl = state.fluidBoluses;
+
+  // Net sympathetic vs parasympathetic
+  const symDominance = adr - ach * 0.6;
+
+  // BPM: base + sym effect + fluid effect
+  let bpm = BASE.bpm + symDominance * 8 - ach * 3 + fl * 4;
+  bpm = Math.max(35, Math.min(170, bpm));
+
+  // Blood Pressure
+  // Adrenaline → beta1 (↑ HR, ↑ contractility) + alpha1 (↑ vasoconstriction → ↑ BP)
+  // Acetylcholine → ↓ HR, slight ↓ BP
+  // Fluid → ↑ preload → ↑ CO → ↑ BP
+  let systolic = BASE.systolic + adr * 8 - ach * 4 + fl * 12;
+  let diastolic = BASE.diastolic + adr * 4 - ach * 2 + fl * 7;
+  systolic = Math.max(70, Math.min(220, systolic));
+  diastolic = Math.max(40, Math.min(140, diastolic));
+
+  // GFR: 
+  // ↑ BP → ↑ GFR (up to point)
+  // Heavy adrenaline → renal vasoconstriction (↓ GFR at high doses)
+  // Fluid bolus → ↑ GFR
+  let gfr = BASE.gfr;
+  if (adr <= 5) {
+    gfr += adr * 3 + fl * 8 - ach * 4;
+  } else {
+    // High dose adrenaline → renal vasoconstriction
+    gfr += 15 - (adr - 5) * 6 + fl * 8 - ach * 4;
+  }
+  gfr = Math.max(10, Math.min(200, gfr));
+
+  // Urine output depends on GFR and ADH/RAAS
+  // Adrenaline → RAAS activation → ↑ aldosterone → ↓ urine
+  // Fluid bolus → ↑ urine
+  let raasActivity = adr * 0.1 + Math.max(0, (90 - systolic) / 90) * 0.3;
+  raasActivity = Math.min(1, Math.max(0, raasActivity - fl * 0.05));
+  let urine = (gfr / BASE.gfr) * BASE.urine * (1 - raasActivity * 0.6) + fl * 0.3;
+  urine = Math.max(0.1, Math.min(5, urine));
+
+  // RAAS components
+  const raasPercent = Math.round(raasActivity * 100);
+  const reninActive = adr > 3 || systolic < 90;
+  const angioHigh = raasActivity > 0.4;
+  const aldoHigh = raasActivity > 0.3;
+
+  return { bpm, systolic, diastolic, gfr, urine, raasPercent, reninActive, angioHigh, aldoHigh };
+}
+
+// ========== Update UI ==========
+function updateUI() {
+  const p = calcPhysiology();
+  const adr = state.adrenaline;
+  const ach = state.acetylcholine;
+  const fl = state.fluidBoluses;
+
+  // BPM
+  document.getElementById('bpmDisplay').textContent = Math.round(p.bpm);
+
+  // Heart animation speed
+  const heartDuration = Math.max(0.3, 1.2 - (p.bpm - 60) / 120);
+  document.getElementById('heartSvg').style.animationDuration = heartDuration + 's';
+  document.querySelectorAll('.heart-ring').forEach(r => {
+    r.style.animationDuration = heartDuration + 's';
+  });
+
+  // BP
+  document.getElementById('bpDisplay').innerHTML =
+    `${Math.round(p.systolic)}<small style="font-size:0.9rem;">/</small>${Math.round(p.diastolic)}`;
+
+  // Color coding BP
+  const bpEl = document.getElementById('bpDisplay');
+  if (p.systolic > 180) bpEl.style.color = 'var(--accent-red)';
+  else if (p.systolic > 140) bpEl.style.color = 'var(--accent-gold)';
+  else if (p.systolic < 90) bpEl.style.color = 'var(--accent-purple)';
+  else bpEl.style.color = 'var(--accent-cyan)';
+
+  // Urine
+  document.getElementById('urineDisplay').textContent = p.urine.toFixed(1);
+  const urineEl = document.getElementById('urineDisplay');
+  if (p.urine < 0.5) urineEl.style.color = 'var(--accent-red)';
+  else if (p.urine > 2.5) urineEl.style.color = 'var(--accent-cyan)';
+  else urineEl.style.color = 'var(--accent-green)';
+
+  // GFR
+  document.getElementById('gfrDisplay').textContent = Math.round(p.gfr);
+  const gfrEl = document.getElementById('gfrDisplay');
+  if (p.gfr < 60) gfrEl.style.color = 'var(--accent-red)';
+  else if (p.gfr > 150) gfrEl.style.color = 'var(--accent-cyan)';
+  else gfrEl.style.color = 'var(--accent-purple)';
+
+  // Delta badges
+  updateDelta('bpDelta', p.systolic, BASE.systolic, 'mmHg');
+  updateDelta('urineDelta', p.urine, BASE.urine, 'مل/د');
+  updateDelta('gfrDelta', p.gfr, BASE.gfr, 'مل/د');
+
+  // RAAS
+  document.getElementById('raasBar').style.width = Math.max(5, p.raasPercent) + '%';
+  document.getElementById('raasPercent').textContent = p.raasPercent + '%';
+
+  const raasLevel = p.raasPercent < 20 ? 'منخفض' : p.raasPercent < 50 ? 'متوسط' : 'مرتفع';
+  document.getElementById('raasVal').textContent = raasLevel;
+  document.getElementById('raasVal').style.color = p.raasPercent < 20 ? 'var(--accent-green)' : p.raasPercent < 50 ? 'var(--accent-gold)' : 'var(--accent-red)';
+
+  document.getElementById('reninVal').textContent = p.reninActive ? 'مرتفع' : 'طبيعي';
+  document.getElementById('reninVal').style.color = p.reninActive ? 'var(--accent-red)' : 'var(--accent-green)';
+
+  document.getElementById('angioVal').textContent = p.angioHigh ? 'مرتفع' : 'منخفض';
+  document.getElementById('angioVal').style.color = p.angioHigh ? 'var(--accent-red)' : 'var(--accent-green)';
+
+  document.getElementById('aldoVal').textContent = p.aldoHigh ? 'مرتفع' : 'طبيعي';
+  document.getElementById('aldoVal').style.color = p.aldoHigh ? 'var(--accent-gold)' : 'var(--accent-cyan)';
+
+  // Chart update
+  bpmData.shift(); bpmData.push(p.bpm);
+  bpData.shift(); bpData.push(p.systolic);
+  vitalsChart.update('none');
+
+  // Alerts
+  const alertZone = document.getElementById('alertZone');
+  alertZone.className = 'alert-zone';
+  if (p.systolic > 180) {
+    alertZone.className = 'alert-zone danger';
+    alertZone.innerHTML = '⚠️ ضغط دم مرتفع جداً — Hypertensive Crisis';
+  } else if (p.bpm > 140) {
+    alertZone.className = 'alert-zone warning';
+    alertZone.innerHTML = '⚡ تسارع القلب — Tachycardia';
+  } else if (p.bpm < 45) {
+    alertZone.className = 'alert-zone warning';
+    alertZone.innerHTML = '🩺 بطء القلب — Bradycardia';
+  } else if (p.urine < 0.3) {
+    alertZone.className = 'alert-zone danger';
+    alertZone.innerHTML = '🔴 قلة البول الشديدة — Oliguria';
+  }
+
+  // AI Insight
+  updateInsight(adr, ach, fl, p);
+}
+
+function updateDelta(id, current, base, unit) {
+  const el = document.getElementById(id);
+  const diff = current - base;
+  if (Math.abs(diff) < 0.5) {
+    el.className = 'monitor-delta delta-neutral';
+    el.textContent = '—';
+  } else if (diff > 0) {
+    el.className = 'monitor-delta delta-up';
+    el.textContent = '+' + diff.toFixed(1) + ' ' + unit;
+  } else {
+    el.className = 'monitor-delta delta-down';
+    el.textContent = diff.toFixed(1) + ' ' + unit;
+  }
+}
+
+// ========== AI Insight Engine ==========
+function updateInsight(adr, ach, fl, p) {
+  const titleEl = document.getElementById('insightTitle');
+  const bodyEl = document.getElementById('insightBody');
+  const flowEl = document.getElementById('mechanismFlow');
+
+  // Determine dominant scenario
+  if (adr === 0 && ach === 0 && fl === 0) {
+    titleEl.textContent = 'الحالة الفسيولوجية الطبيعية';
+    bodyEl.innerHTML = `يعكس النظام حالة الراحة الفسيولوجية. تعمل <strong>العقدة الجيبية الأذينية (SA Node)</strong> كضانع خطو بمعدل <span class="highlight-cyan">75 ضربة/دقيقة</span>، تحت تأثير متوازن بين الجهازين العصبيين الودي ونظير الودي.<br><br>
+    تُرشَّح الكليتان ما يقارب <span class="highlight-green">180 لتراً/يوم</span> من البلازما، ويُعاد امتصاص 99% منها. إفراز رينين الكلية في حالة <span class="highlight-cyan">راحة منخفضة</span>، ومحور <strong>رينين-أنجيوتنسين-ألدوستيرون (RAAS)</strong> غير منشط.`;
+    flowEl.innerHTML = `<span class="mech-step mech-neutral">حالة راحة</span><span class="mech-arrow">←</span><span class="mech-step mech-cyan">SA Node نشط</span><span class="mech-arrow">←</span><span class="mech-step mech-green">GFR: 120 مل/د</span><span class="mech-arrow">←</span><span class="mech-step mech-neutral">بول: 1 مل/د</span>`;
+    return;
+  }
+
+  if (adr > 0 && adr >= ach) {
+    if (adr >= 7) {
+      titleEl.textContent = 'جرعة عالية من الأدرينالين — استجابة الطوارئ';
+      bodyEl.innerHTML = `الأدرينالين بجرعة عالية يرتبط بقوة بـ<strong>مستقبلات بيتا-1 (β1)</strong> في القلب مُسبِّباً <span class="highlight-red">زيادة كبيرة في معدل النبض (Chronotropism+)</span> وقوة الانقباض <span class="highlight-red">(Inotropism+)</span>.<br><br>
+      كما يُنشِّط <strong>مستقبلات ألفا-1 (α1)</strong> في الأوعية الكلوية مسبباً <span class="highlight-red">تضييق الأوعية الكلوية</span>، مما يُقلِّل معدل الترشيح الكبيبي (GFR) رغم ارتفاع ضغط الدم. <br><br>
+      ارتفاع ضغط الدم ينشِّط <strong>مستقبلات قرب الكبيبية (JG cells)</strong> وخلايا البقعة الكثيفة، مما يُعدِّل إفراز الرينين وفق آلية التغذية الراجعة.`;
+      flowEl.innerHTML = `<span class="mech-step mech-red">أدرينالين عالي</span><span class="mech-arrow">←</span><span class="mech-step mech-red">β1: ↑ BPM + قوة</span><span class="mech-arrow">←</span><span class="mech-step mech-red">α1: تضييق وعائي كلوي</span><span class="mech-arrow">←</span><span class="mech-step mech-gold">↓ GFR</span><span class="mech-arrow">←</span><span class="mech-step mech-red">↓ بول (قلة بول)</span>`;
+    } else {
+      titleEl.textContent = 'تنشيط الجهاز العصبي الودي (Sympathetic)';
+      bodyEl.innerHTML = `الأدرينالين المنخفض-المتوسط يرتبط بـ<strong>مستقبلات بيتا-1 (β1)</strong> في العقدة الجيبية (SA Node) مُحدِثاً <span class="highlight-red">زيادة في درجة ميل إزالة الاستقطاب التدريجية</span>، فتصل خلايا SA Node إلى جهد العتبة بسرعة أكبر.<br><br>
+      يؤدي هذا إلى: زيادة معدل النبض، زيادة حجم الضربة، وزيادة الناتج القلبي. ضغط الدم يرتفع بسبب <span class="highlight-red">تضييق الأوعية (α1)</span> وزيادة الناتج القلبي.<br><br>
+      محور <span class="highlight-gold">رينين-أنجيوتنسين-ألدوستيرون (RAAS)</span> يبدأ في التنشيط، مما يُقلِّل إنتاج البول للحفاظ على حجم الدم.`;
+      flowEl.innerHTML = `<span class="mech-step mech-red">أدرينالين</span><span class="mech-arrow">←</span><span class="mech-step mech-red">β1 في SA Node</span><span class="mech-arrow">←</span><span class="mech-step mech-red">↑ BPM + ↑ BP</span><span class="mech-arrow">←</span><span class="mech-step mech-gold">RAAS ↑</span><span class="mech-arrow">←</span><span class="mech-step mech-gold">↓ بول خفيف</span>`;
+    }
+    return;
+  }
+
+  if (ach > 0 && ach > adr) {
+    titleEl.textContent = 'تنشيط الجهاز العصبي نظير الودي (Parasympathetic)';
+    bodyEl.innerHTML = `الأستيل كولين يرتبط بـ<strong>مستقبلات مسكارينية (M2)</strong> في العقدة الجيبية (SA Node) مُحدِثاً <span class="highlight-cyan">فتح قنوات بوتاسيوم وزيادة تيار K⁺</span>، مما يُبطِئ درجة ميل إزالة الاستقطاب التدريجية.<br><br>
+    يُبطِّئ كذلك التوصيل في <strong>العقدة الأذينية البطينية (AV Node)</strong> مُطيلاً فترة الجموح وزمن التوصيل. النتيجة: <span class="highlight-cyan">تباطؤ القلب (Bradycardia)</span> وانخفاض طفيف في ضغط الدم.<br><br>
+    في الكلية: انخفاض ضغط الدم قد يُنشِّط إفراز <span class="highlight-purple">رينين</span> وفق مبدأ التغذية الراجعة لرفع الضغط.`;
+    flowEl.innerHTML = `<span class="mech-step mech-cyan">أستيل كولين</span><span class="mech-arrow">←</span><span class="mech-step mech-cyan">M2 في SA Node</span><span class="mech-arrow">←</span><span class="mech-step mech-cyan">↑ K⁺ ← ↓ BPM</span><span class="mech-arrow">←</span><span class="mech-step mech-cyan">↓ BP</span><span class="mech-arrow">←</span><span class="mech-step mech-green">↑ GFR نسبياً</span>`;
+    return;
+  }
+
+  if (fl > 0) {
+    titleEl.textContent = 'محلول وريدي — تأثير الحمل القبلي (Preload)';
+    bodyEl.innerHTML = `إضافة المحلول الوريدي يزيد <strong>حجم الدم المتداول</strong> وبالتالي <span class="highlight-gold">العائد الوريدي (Venous Return)</span> إلى الأذين الأيمن.<br><br>
+    وفق <strong>قانون ستارلنغ للقلب (Starling's Law)</strong>: زيادة حجم نهاية الانبساط → زيادة شد ألياف عضلة القلب → زيادة قوة الانقباض → <span class="highlight-gold">زيادة حجم الضربة والناتج القلبي</span>.<br><br>
+    في الكلية: ارتفاع الضغط الهيدروستاتيكي الكبيبي يزيد <span class="highlight-green">معدل الترشيح الكبيبي (GFR)</span>، ويُثبِّط إفراز الرينين، فيزداد إنتاج البول.`;
+    flowEl.innerHTML = `<span class="mech-step mech-gold">محلول وريدي</span><span class="mech-arrow">←</span><span class="mech-step mech-gold">↑ حجم الدم</span><span class="mech-arrow">←</span><span class="mech-step mech-gold">قانون ستارلنغ ↑</span><span class="mech-arrow">←</span><span class="mech-step mech-green">↑ GFR</span><span class="mech-arrow">←</span><span class="mech-step mech-green">↑ إنتاج البول</span>`;
+    return;
+  }
+
+  // Mixed scenario
+  if (adr > 0 && ach > 0) {
+    titleEl.textContent = 'تفاعل الجهازين الودي ونظير الودي';
+    bodyEl.innerHTML = `في وجود كليهما معاً، يحدث <strong>تنافس على مستقبلات SA Node</strong>. وفق المبادئ المعروفة في فسيولوجيا القلب، عند تنبيه الأعصاب نظير الودية يقل إفراز نورإبينفرين من الأعصاب الودية.<br><br>
+    التأثير الصافي يعتمد على الغلبة: <span class="highlight-red">أدرينالين = ${adr}</span> مقابل <span class="highlight-cyan">أستيل كولين = ${ach}</span>.<br><br>
+    ${adr > ach ? '<span class="highlight-red">الجهاز الودي غالب</span>: نبض مرتفع، ضغط مرتفع.' : '<span class="highlight-cyan">الجهاز نظير الودي غالب</span>: نبض بطيء، ضغط أقل.'}`;
+    flowEl.innerHTML = `<span class="mech-step mech-red">ودي: ${adr}</span><span class="mech-arrow">⚔</span><span class="mech-step mech-cyan">نظير ودي: ${ach}</span><span class="mech-arrow">←</span><span class="mech-step mech-neutral">المحصلة الصافية</span><span class="mech-arrow">←</span><span class="mech-step mech-${adr > ach ? 'red' : 'cyan'}">${adr > ach ? '↑ BPM' : '↓ BPM'}</span>`;
+  }
+}
+
+// ========== Event Listeners ==========
+document.getElementById('adrSlider').addEventListener('input', function() {
+  state.adrenaline = parseFloat(this.value);
+  document.getElementById('adrVal').textContent = this.value;
+  // Update slider gradient
+  const pct = (this.value / 10) * 100;
+  this.style.background = `linear-gradient(90deg, var(--accent-red) 0%, var(--accent-red) ${pct}%, rgba(230,57,70,0.2) ${pct}%, rgba(230,57,70,0.2) 100%)`;
+  updateUI();
+});
+
+document.getElementById('achSlider').addEventListener('input', function() {
+  state.acetylcholine = parseFloat(this.value);
+  document.getElementById('achVal').textContent = this.value;
+  const pct = (this.value / 10) * 100;
+  this.style.background = `linear-gradient(90deg, var(--accent-cyan) 0%, var(--accent-cyan) ${pct}%, rgba(0,212,255,0.2) ${pct}%, rgba(0,212,255,0.2) 100%)`;
+  updateUI();
+});
+
+function applyFluidBolus() {
+  state.fluidBoluses = Math.min(5, state.fluidBoluses + 1);
+  // Animate wave
+  const wave = document.getElementById('fluidWave');
+  wave.classList.remove('animate');
+  void wave.offsetWidth;
+  wave.classList.add('animate');
+  // Flash button
+  const btn = document.getElementById('fluidBtn');
+  btn.style.background = 'linear-gradient(135deg, rgba(255,209,102,0.4), rgba(255,209,102,0.2))';
+  setTimeout(() => {
+    btn.style.background = '';
+  }, 400);
+  updateUI();
+}
+
+function resetAll() {
+  state.adrenaline = 0;
+  state.acetylcholine = 0;
+  state.fluidBoluses = 0;
+
+  document.getElementById('adrSlider').value = 0;
+  document.getElementById('achSlider').value = 0;
+  document.getElementById('adrVal').textContent = '0';
+  document.getElementById('achVal').textContent = '0';
+
+  // Reset slider backgrounds
+  document.getElementById('adrSlider').style.background = 'linear-gradient(90deg, var(--accent-red) 0%, rgba(230,57,70,0.2) 100%)';
+  document.getElementById('achSlider').style.background = 'linear-gradient(90deg, var(--accent-cyan) 0%, rgba(0,212,255,0.2) 100%)';
+
+  updateUI();
+}
+
+// ========== Live Chart Update Loop ==========
+setInterval(() => {
+  if (state.adrenaline > 0 || state.acetylcholine > 0 || state.fluidBoluses > 0) {
+    const p = calcPhysiology();
+    // Add small noise for realism
+    const noise = () => (Math.random() - 0.5) * 3;
+    bpmData.shift(); bpmData.push(p.bpm + noise());
+    bpData.shift(); bpData.push(p.systolic + noise());
+    vitalsChart.update('none');
+  } else {
+    // Baseline noise
+    const noise = () => (Math.random() - 0.5) * 2;
+    bpmData.shift(); bpmData.push(BASE.bpm + noise());
+    bpData.shift(); bpData.push(BASE.systolic + noise());
+    vitalsChart.update('none');
+  }
+}, 500);
+
+// Init
+updateUI();
+</script>
+</body>
+</html>
