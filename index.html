@@ -3,1365 +3,1583 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>محاكاة فسيولوجيا متقدمة — القلب، الكلية، الهرمونات</title>
+<title>منصة المحاكاة الفسيولوجية المتكاملة</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
 
-:root {
-  --bg-root: #020c1b;
-  --bg-panel: #061223;
-  --bg-card: #0b1a2e;
-  --bg-card2: #0d2040;
-  --c-blue: #1e90ff;
-  --c-cyan: #00e5ff;
-  --c-teal: #00c9a7;
-  --c-red: #ff4757;
-  --c-gold: #ffa502;
-  --c-purple: #a55eea;
-  --c-green: #2ed573;
-  --c-pink: #ff6b81;
-  --c-navy: #0a3060;
-  --text-bright: #e8f4ff;
-  --text-mid: #7fb3d3;
-  --text-dim: #2e5f82;
-  --border-dim: rgba(30,144,255,0.10);
-  --border-mid: rgba(30,144,255,0.22);
-  --border-glow: rgba(0,229,255,0.35);
-  --glow-blue: 0 0 24px rgba(30,144,255,0.18);
-  --glow-cyan: 0 0 20px rgba(0,229,255,0.22);
+/* ══════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════ */
+:root{
+  /* Backgrounds */
+  --bg-page:   #030b18;
+  --bg-panel:  #071424;
+  --bg-card:   #0a1a2e;
+  --bg-ctrl-heart:  rgba(255,23,68,.055);
+  --bg-ctrl-renal:  rgba(0,191,165,.04);
+  --bg-ctrl-gas:    rgba(0,191,165,.04);
+  --bg-ctrl-meta:   rgba(213,0,249,.04);
+  --bg-ctrl-fluid:  rgba(255,234,0,.04);
+  --bg-ctrl-elec:   rgba(255,109,0,.04);
+
+  /* Accent colors */
+  --red:    #ff1744;
+  --cyan:   #00e5ff;
+  --teal:   #00bfa5;
+  --green:  #00e676;
+  --yellow: #ffea00;
+  --orange: #ff6d00;
+  --purple: #d500f9;
+  --indigo: #651fff;
+  --blue:   #2979ff;
+  --pink:   #f50057;
+
+  /* Text */
+  --t0: #ecf4ff;
+  --t1: #7bafd4;
+  --t2: #2d5a82;
+  --t3: #143050;
+
+  /* Borders */
+  --b0: rgba(41,121,255,.08);
+  --b1: rgba(41,121,255,.18);
+  --b2: rgba(0,229,255,.30);
+
+  /* Spacing */
+  --gap: 12px;
+  --pad: 14px;
+  --r:   10px;
+
+  /* Chart background */
+  --chart-bg: #0d1f38;
 }
 
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'Cairo', sans-serif;
-  background: var(--bg-root);
-  color: var(--text-bright);
-  min-height: 100vh;
-  overflow-x: hidden;
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:13px;scroll-behavior:smooth;}
+body{
+  font-family:'Tajawal',sans-serif;
+  background:var(--bg-page);
+  color:var(--t0);
+  min-height:100vh;
+  overflow-x:hidden;
 }
-
-/* ── GRID BACKGROUND ── */
-body::before {
-  content:'';
-  position:fixed; inset:0; z-index:0;
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(30,144,255,0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 60% at 20% 80%, rgba(0,229,255,0.04) 0%, transparent 60%),
-    linear-gradient(rgba(30,144,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(30,144,255,0.025) 1px, transparent 1px);
-  background-size: auto, auto, 48px 48px, 48px 48px;
-  pointer-events:none;
+    radial-gradient(ellipse 70% 50% at 85% 10%,rgba(41,121,255,.06) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 70% at 10% 90%,rgba(0,191,165,.04) 0%,transparent 55%),
+    linear-gradient(rgba(41,121,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(41,121,255,.018) 1px,transparent 1px);
+  background-size:auto,auto,44px 44px,44px 44px;
+}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--bg-panel);}
+::-webkit-scrollbar-thumb{background:var(--b1);border-radius:2px;}
+
+/* ══════════════════════════════════════════
+   TOP HERO HEADER
+══════════════════════════════════════════ */
+.hero{
+  position:relative;z-index:10;
+  background:linear-gradient(135deg,rgba(7,20,36,.98),rgba(11,26,46,.98));
+  border-bottom:2px solid var(--b1);
+  padding:14px 24px 12px;
+  box-shadow:0 4px 32px rgba(0,0,0,.4);
+}
+.hero::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),var(--blue),transparent);
+  opacity:.5;
+}
+.hero-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.hero-left{display:flex;align-items:center;gap:14px;}
+.hero-icon{
+  width:50px;height:50px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(41,121,255,.25),rgba(0,229,255,.1));
+  border:1px solid var(--b2);
+  display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+  box-shadow:0 0 20px rgba(41,121,255,.2);flex-shrink:0;
+}
+.hero-title{
+  font-size:1.25rem;font-weight:900;letter-spacing:-.3px;
+  background:linear-gradient(90deg,var(--cyan),#a8d8ff,var(--t0));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-sub{font-size:.68rem;color:var(--t2);margin-top:2px;font-weight:300;}
+.hero-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.chip{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 13px;border-radius:20px;font-size:.65rem;font-weight:700;
+  border:1px solid;white-space:nowrap;
+}
+.chip-live{background:rgba(0,230,118,.09);border-color:rgba(0,230,118,.35);color:var(--green);}
+.chip-live .dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:dp 1.3s infinite;}
+@keyframes dp{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,230,118,.5);}50%{opacity:.7;box-shadow:0 0 0 5px rgba(0,230,118,0);}}
+.chip-state{background:rgba(255,234,0,.08);border-color:rgba(255,234,0,.3);color:var(--yellow);}
+.chip-state.crit{background:rgba(255,23,68,.1);border-color:rgba(255,23,68,.35);color:var(--red);}
+.chip-ver{background:rgba(41,121,255,.1);border-color:var(--b1);color:var(--blue);
+  font-family:'JetBrains Mono',monospace;}
+
+/* ══════════════════════════════════════════
+   ALERT STRIP
+══════════════════════════════════════════ */
+.astrip{
+  display:none;align-items:center;gap:10px;
+  padding:9px 24px;font-size:.78rem;font-weight:700;border-bottom:1px solid;
+  position:relative;z-index:9;
+  animation:sdn .2s ease;
+}
+@keyframes sdn{from{transform:translateY(-100%);}to{transform:translateY(0);}}
+.astrip.show{display:flex;}
+.as-crit{background:rgba(255,23,68,.1);border-color:rgba(255,23,68,.4);color:var(--red);}
+.as-warn{background:rgba(255,109,0,.09);border-color:rgba(255,109,0,.35);color:var(--orange);}
+.as-info{background:rgba(0,229,255,.07);border-color:rgba(0,229,255,.25);color:var(--cyan);}
+.as-x{margin-right:auto;background:none;border:1px solid currentColor;border-radius:4px;
+  padding:1px 8px;font-size:.6rem;cursor:pointer;color:inherit;opacity:.7;font-family:'Tajawal',sans-serif;}
+.as-x:hover{opacity:1;}
+
+/* Fluid sweep bar */
+.fw{position:fixed;top:0;left:0;width:100%;height:2px;z-index:999;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--yellow),transparent);transform:translateX(-100%);}
+.fw.run{animation:fwa .9s ease-out forwards;}
+@keyframes fwa{0%{transform:translateX(-100%);opacity:1;}100%{transform:translateX(100%);opacity:0;}}
+
+/* ══════════════════════════════════════════
+   3-COLUMN ROOT GRID
+   Col 1 (controls): 270px
+   Col 2 (charts):   1fr
+   Col 3 (visual):   360px
+══════════════════════════════════════════ */
+.root{
+  position:relative;z-index:1;
+  display:grid;
+  grid-template-columns:270px 1fr 360px;
+  min-height:calc(100vh - 82px);
+  overflow:hidden;
 }
 
-.wrap {
-  position:relative; z-index:1;
-  max-width:1480px;
-  margin:0 auto;
-  padding:16px 20px 32px;
-}
-
-/* ══════════════════════════════
-   HEADER
-══════════════════════════════ */
-.header {
-  display:flex; align-items:center; justify-content:space-between;
+/* ══════════════════════════════════════════
+   COLUMN 1 — CONTROLS (left / right in RTL)
+══════════════════════════════════════════ */
+.col-ctrl{
   background:var(--bg-panel);
-  border:1px solid var(--border-mid);
-  border-radius:14px;
-  padding:16px 28px;
-  margin-bottom:18px;
-  position:relative; overflow:hidden;
+  border-left:1px solid var(--b0);
+  overflow-y:auto;
+  padding:var(--pad) 12px;
+  display:flex;flex-direction:column;gap:10px;
 }
-.header::after {
-  content:'';
-  position:absolute; bottom:0; left:0; right:0; height:1px;
-  background:linear-gradient(90deg, transparent, var(--c-cyan), transparent);
-  opacity:.4;
+
+/* Control group card */
+.cg{
+  border-radius:var(--r);
+  border:1px solid var(--b0);
+  overflow:hidden;
 }
-.hdr-left { display:flex; align-items:center; gap:14px; }
-.hdr-icon {
-  width:44px; height:44px;
-  background:linear-gradient(135deg, rgba(0,229,255,.15), rgba(30,144,255,.08));
-  border:1px solid var(--border-glow);
-  border-radius:10px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:1.3rem;
+.cg-head{
+  display:flex;align-items:center;gap:7px;
+  padding:8px 12px 7px;
+  border-bottom:1px solid var(--b0);
 }
-.hdr-title { font-size:1.2rem; font-weight:700; letter-spacing:-.3px; }
-.hdr-sub { font-size:.72rem; color:var(--text-mid); margin-top:2px; font-weight:300; }
-.hdr-right { display:flex; gap:10px; align-items:center; }
-.badge {
-  display:flex; align-items:center; gap:6px;
-  padding:6px 14px; border-radius:20px;
-  font-size:.72rem; font-weight:600; letter-spacing:.5px;
+.cg-bar{width:3px;height:13px;border-radius:2px;flex-shrink:0;}
+.cg-title{font-size:.64rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--t1);}
+.cg-body{padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+
+/* Group tints */
+.cg-heart{background:var(--bg-ctrl-heart);}
+.cg-renal{background:var(--bg-ctrl-renal);}
+.cg-gas  {background:var(--bg-ctrl-gas);}
+.cg-meta {background:var(--bg-ctrl-meta);}
+.cg-fluid{background:var(--bg-ctrl-fluid);}
+.cg-elec {background:var(--bg-ctrl-elec);}
+
+/* Slider row */
+.sr{display:flex;flex-direction:column;gap:4px;}
+.sr-top{display:flex;align-items:flex-end;justify-content:space-between;}
+.sr-name{font-size:.78rem;font-weight:700;color:var(--t0);}
+.sr-eng{font-size:.58rem;color:var(--t2);font-family:'JetBrains Mono',monospace;margin-top:1px;}
+.sv{
+  font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;
+  padding:2px 8px;border-radius:5px;min-width:38px;text-align:center;
   border:1px solid;
 }
-.badge-live {
-  background:rgba(46,213,115,.08);
-  border-color:rgba(46,213,115,.3);
-  color:var(--c-green);
-}
-.badge-live .dot {
-  width:7px; height:7px; border-radius:50%;
-  background:var(--c-green);
-  animation:live-pulse 1.4s infinite;
-}
-@keyframes live-pulse {
-  0%,100%{opacity:1; box-shadow:0 0 0 0 rgba(46,213,115,.5);}
-  50%{opacity:.7; box-shadow:0 0 0 5px rgba(46,213,115,0);}
-}
-.badge-version {
-  background:rgba(30,144,255,.08);
-  border-color:rgba(30,144,255,.25);
-  color:var(--c-blue);
-  font-family:'JetBrains Mono', monospace;
-}
+.sv-r {background:rgba(255,23,68,.14); color:var(--red);    border-color:rgba(255,23,68,.25);}
+.sv-c {background:rgba(0,229,255,.11); color:var(--cyan);   border-color:rgba(0,229,255,.2);}
+.sv-y {background:rgba(255,234,0,.11); color:var(--yellow); border-color:rgba(255,234,0,.2);}
+.sv-b {background:rgba(41,121,255,.14);color:var(--blue);   border-color:rgba(41,121,255,.22);}
+.sv-g {background:rgba(0,230,118,.11); color:var(--green);  border-color:rgba(0,230,118,.2);}
+.sv-t {background:rgba(0,191,165,.11); color:var(--teal);   border-color:rgba(0,191,165,.2);}
+.sv-o {background:rgba(255,109,0,.12); color:var(--orange); border-color:rgba(255,109,0,.22);}
+.sv-p {background:rgba(213,0,249,.12); color:var(--purple); border-color:rgba(213,0,249,.2);}
 
-/* ══════════════════════════════
-   LAYOUT
-══════════════════════════════ */
-.layout {
-  display:grid;
-  grid-template-columns:290px 1fr 290px;
-  grid-template-rows:auto auto;
-  gap:16px;
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:4px;border-radius:2px;outline:none;cursor:pointer;
 }
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--t0);border:2px solid var(--cyan);
+  box-shadow:0 0 6px rgba(0,229,255,.45);cursor:pointer;transition:.12s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.35);}
 
-/* ══════════════════════════════
-   PANELS — shared
-══════════════════════════════ */
-.panel {
-  background:var(--bg-panel);
-  border:1px solid var(--border-dim);
-  border-radius:14px;
-  padding:20px;
-  position:relative; overflow:hidden;
-}
-.panel-title {
-  font-size:.65rem;
-  font-weight:700;
-  letter-spacing:2.5px;
-  text-transform:uppercase;
-  color:var(--text-dim);
-  margin-bottom:16px;
-  display:flex; align-items:center; gap:8px;
-}
-.panel-title::before {
-  content:'';
-  display:inline-block;
-  width:3px; height:12px;
-  border-radius:2px;
-}
-.pt-blue::before { background:var(--c-blue); }
-.pt-teal::before { background:var(--c-teal); }
-.pt-gold::before { background:var(--c-gold); }
-.pt-purple::before { background:var(--c-purple); }
-.pt-red::before { background:var(--c-red); }
-.pt-cyan::before { background:var(--c-cyan); }
+.sep{height:1px;background:var(--b0);}
 
-/* ══════════════════════════════
-   LEFT CONTROL PANEL
-══════════════════════════════ */
-.ctrl-panel {
-  grid-row:1 / 3;
-  display:flex; flex-direction:column; gap:0;
-}
+/* Info row */
+.ir{display:flex;justify-content:space-between;align-items:center;font-size:.7rem;padding:2px 0;}
+.ir-l{color:var(--t2);}
+.ir-v{font-family:'JetBrains Mono',monospace;font-weight:700;}
 
-/* ── Heart Visual ── */
-.heart-section {
-  display:flex; flex-direction:column; align-items:center;
-  padding:16px 0 12px;
-  margin-bottom:12px;
-  border-bottom:1px solid var(--border-dim);
+/* Buttons */
+.btn{
+  width:100%;padding:9px 12px;border-radius:8px;border:1px solid;
+  cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.8rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:7px;transition:.18s;
 }
-.heart-wrap {
-  position:relative;
-  display:flex; align-items:center; justify-content:center;
-  width:90px; height:90px;
-  margin-bottom:10px;
-}
-.heart-ring {
-  position:absolute; border-radius:50%;
-  border:1px solid rgba(255,71,87,.25);
-  animation:hring 1s ease-out infinite;
-}
-.hr1{width:72px;height:72px;}
-.hr2{width:90px;height:90px;animation-delay:.15s;opacity:.5;}
-@keyframes hring{
-  0%{transform:scale(.7);opacity:.8;}
-  100%{transform:scale(1.5);opacity:0;}
-}
-#heartSvg {
-  position:relative; z-index:1;
-  animation:hbeat 1s ease-in-out infinite;
-  filter:drop-shadow(0 0 10px rgba(255,71,87,.7));
-  transition:animation-duration .25s;
-}
-@keyframes hbeat{
-  0%,100%{transform:scale(1);}
-  15%{transform:scale(1.20);}
-  30%{transform:scale(1);}
-  45%{transform:scale(1.12);}
-  60%{transform:scale(1);}
-}
-.bpm-big {
-  font-family:'JetBrains Mono', monospace;
-  font-size:2.2rem; font-weight:600;
-  color:var(--c-red);
-  text-shadow:0 0 18px rgba(255,71,87,.5);
-  line-height:1;
-}
-.bpm-lbl {
-  font-size:.65rem; color:var(--text-dim);
-  letter-spacing:2px; text-transform:uppercase;
-  margin-top:3px;
-}
+.btn-f{background:rgba(255,234,0,.09);border-color:rgba(255,234,0,.4);color:var(--yellow);}
+.btn-f:hover{background:rgba(255,234,0,.18);transform:translateY(-1px);box-shadow:0 4px 14px rgba(255,234,0,.15);}
+.btn-r{background:transparent;border-color:var(--b0);color:var(--t2);}
+.btn-r:hover{border-color:var(--b1);color:var(--t1);}
 
-/* ── Slider Block ── */
-.sldr-block { margin-bottom:14px; }
-.sldr-hdr {
-  display:flex; align-items:flex-start; justify-content:space-between;
-  margin-bottom:8px;
+/* Activity */
+.act-row{display:flex;gap:5px;}
+.tog{
+  flex:1;padding:6px 3px;border-radius:7px;border:1px solid var(--b0);
+  background:transparent;cursor:pointer;transition:.18s;text-align:center;
+  font-size:.68rem;font-family:'Tajawal',sans-serif;color:var(--t2);
 }
-.sldr-name { font-size:.82rem; font-weight:600; }
-.sldr-sub { font-size:.65rem; color:var(--text-dim); font-weight:300; margin-top:2px;
-  font-family:'JetBrains Mono',monospace; }
-.sldr-badge {
-  font-family:'JetBrains Mono',monospace;
-  font-size:.82rem; font-weight:600;
-  padding:3px 10px; border-radius:6px; min-width:42px; text-align:center;
-}
-.sb-red{background:rgba(255,71,87,.14);color:var(--c-red);}
-.sb-cyan{background:rgba(0,229,255,.10);color:var(--c-cyan);}
-.sb-gold{background:rgba(255,165,2,.12);color:var(--c-gold);}
-.sb-blue{background:rgba(30,144,255,.12);color:var(--c-blue);}
-.sb-purple{background:rgba(165,94,234,.12);color:var(--c-purple);}
+.tog:hover{border-color:var(--b1);color:var(--t1);}
+.tog.on{background:rgba(0,230,118,.1);border-color:rgba(0,230,118,.4);color:var(--green);}
 
-input[type=range] {
-  -webkit-appearance:none;
-  width:100%; height:4px; border-radius:2px; outline:none; cursor:pointer;
+/* Drug buttons */
+.drug-b{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 11px;border-radius:8px;border:1px solid var(--b0);
+  background:rgba(0,0,0,.18);cursor:pointer;transition:.18s;
+  font-size:.73rem;font-family:'Tajawal',sans-serif;color:var(--t1);
 }
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance:none;
-  width:16px; height:16px; border-radius:50%;
-  background:var(--text-bright);
-  border:2px solid var(--c-cyan);
-  box-shadow:0 0 8px rgba(0,229,255,.5);
-  transition:transform .15s, box-shadow .15s;
-  cursor:pointer;
-}
-input[type=range]::-webkit-slider-thumb:hover {
-  transform:scale(1.25);
-  box-shadow:0 0 14px rgba(0,229,255,.7);
-}
-.sldr-red{background:linear-gradient(90deg,var(--c-red) 0%,rgba(255,71,87,.2) 100%);}
-.sldr-cyan{background:linear-gradient(90deg,var(--c-cyan) 0%,rgba(0,229,255,.2) 100%);}
-.sldr-gold{background:linear-gradient(90deg,var(--c-gold) 0%,rgba(255,165,2,.2) 100%);}
-.sldr-blue{background:linear-gradient(90deg,var(--c-blue) 0%,rgba(30,144,255,.2) 100%);}
-.sldr-purple{background:linear-gradient(90deg,var(--c-purple) 0%,rgba(165,94,234,.2) 100%);}
+.drug-b:hover{border-color:var(--b1);color:var(--t0);}
+.drug-b.on{background:rgba(41,121,255,.12);border-color:rgba(41,121,255,.4);color:var(--cyan);}
+.drug-ef{font-size:.58rem;font-family:'JetBrains Mono',monospace;color:var(--t2);margin-top:1px;}
+.drug-st{font-size:.62rem;font-family:'JetBrains Mono',monospace;color:var(--t2);white-space:nowrap;}
 
-.divider { height:1px; background:var(--border-dim); margin:14px 0; }
-
-.btn-fluid {
-  width:100%; padding:10px 14px;
-  background:linear-gradient(135deg,rgba(255,165,2,.14),rgba(255,165,2,.05));
-  border:1px solid rgba(255,165,2,.4); border-radius:10px;
-  color:var(--c-gold); font-family:'Cairo',sans-serif;
-  font-size:.85rem; font-weight:700; cursor:pointer;
-  transition:all .2s; display:flex; align-items:center; justify-content:center; gap:8px;
-  margin-bottom:8px;
+/* Case grid */
+.case-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.case-b{
+  padding:7px 5px;border-radius:7px;border:1px solid var(--b0);
+  background:rgba(0,0,0,.18);cursor:pointer;transition:.18s;
+  font-size:.67rem;text-align:center;line-height:1.5;
+  font-family:'Tajawal',sans-serif;color:var(--t1);
 }
-.btn-fluid:hover {
-  background:linear-gradient(135deg,rgba(255,165,2,.25),rgba(255,165,2,.1));
-  box-shadow:0 0 18px rgba(255,165,2,.2); transform:translateY(-1px);
-}
-.btn-reset {
-  width:100%; padding:9px;
-  background:transparent;
-  border:1px solid var(--border-dim); border-radius:10px;
-  color:var(--text-dim); font-family:'Cairo',sans-serif;
-  font-size:.78rem; cursor:pointer; transition:all .2s;
-}
-.btn-reset:hover { border-color:var(--text-mid); color:var(--text-mid); }
-
-/* Alert */
-.alert-box {
-  display:none;
-  margin-top:10px; padding:10px 14px;
-  border-radius:10px; font-size:.78rem; font-weight:600;
-  align-items:center; gap:8px; border:1px solid;
-}
-.alert-danger{ display:flex; background:rgba(255,71,87,.08); border-color:rgba(255,71,87,.35); color:var(--c-red);}
-.alert-warn{ display:flex; background:rgba(255,165,2,.08); border-color:rgba(255,165,2,.35); color:var(--c-gold);}
-.alert-info{ display:flex; background:rgba(0,229,255,.07); border-color:rgba(0,229,255,.25); color:var(--c-cyan);}
-
-/* ══════════════════════════════
-   CENTER — Visual + Chart
-══════════════════════════════ */
-.center-col {
-  display:flex; flex-direction:column; gap:16px;
-}
-
-/* ── Nephron + Heart visual area ── */
-.visual-area {
-  background:var(--bg-panel);
-  border:1px solid var(--border-dim);
-  border-radius:14px;
-  padding:20px;
-  position:relative; overflow:hidden;
-  min-height:340px;
-}
-.visual-row {
-  display:flex; align-items:center; justify-content:space-around;
-  height:100%;
-}
-
-/* Fluid Particle Canvas */
-#particleCanvas {
-  position:absolute; inset:0; z-index:2; pointer-events:none;
-}
-
-/* Legend pills */
-.vis-legend {
-  position:absolute; bottom:14px; right:50%;
-  transform:translateX(50%);
-  display:flex; gap:10px; z-index:3;
-}
-.vl-pill {
-  display:flex; align-items:center; gap:5px;
-  font-size:.65rem; color:var(--text-mid);
-  background:rgba(6,18,35,.7);
-  border:1px solid var(--border-dim);
-  padding:4px 10px; border-radius:12px;
-}
-.vl-dot { width:7px; height:7px; border-radius:50%; }
-
-/* ── Monitors row ── */
-.monitors-row {
-  display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
-}
-.mon-card {
-  background:var(--bg-card);
-  border:1px solid var(--border-dim);
-  border-radius:12px; padding:16px 14px;
-  position:relative; overflow:hidden;
-  transition:border-color .3s, box-shadow .3s;
-}
-.mon-card:hover { border-color:var(--border-glow); box-shadow:var(--glow-cyan); }
-.mon-card::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:2px;
-}
-.mc-bp::before{background:linear-gradient(90deg,var(--c-cyan),transparent);}
-.mc-urine::before{background:linear-gradient(90deg,var(--c-teal),transparent);}
-.mc-gfr::before{background:linear-gradient(90deg,var(--c-purple),transparent);}
-.mc-reab::before{background:linear-gradient(90deg,var(--c-gold),transparent);}
-
-.mon-icon { font-size:1.1rem; margin-bottom:6px; display:block; }
-.mon-lbl { font-size:.62rem; color:var(--text-dim); letter-spacing:1.2px; text-transform:uppercase; margin-bottom:5px; }
-.mon-val {
-  font-family:'JetBrains Mono',monospace;
-  font-size:1.55rem; font-weight:600; line-height:1.1;
-  transition:color .35s;
-}
-.mon-unit { font-size:.68rem; color:var(--text-mid); margin-top:3px; }
-.mon-delta {
-  position:absolute; top:14px; left:12px;
-  font-family:'JetBrains Mono',monospace; font-size:.63rem;
-  padding:2px 7px; border-radius:4px;
-}
-.delta-up{background:rgba(255,71,87,.14);color:var(--c-red);}
-.delta-dn{background:rgba(0,229,255,.10);color:var(--c-cyan);}
-.delta-eq{background:rgba(46,65,90,.4);color:var(--text-dim);}
-
-/* Chart */
-.chart-panel {
-  background:var(--bg-panel);
-  border:1px solid var(--border-dim);
-  border-radius:14px; padding:20px;
-}
-.chart-hdr {
-  display:flex; justify-content:space-between; align-items:flex-start;
-  margin-bottom:14px;
-}
-.chart-ttl { font-size:.85rem; font-weight:700; }
-.chart-sub { font-size:.68rem; color:var(--text-dim); margin-top:3px; }
-.chart-legend { display:flex; gap:14px; align-items:center; }
-.cl-item { display:flex; align-items:center; gap:5px; font-size:.68rem; color:var(--text-mid); }
-.cl-dot { width:7px; height:7px; border-radius:50%; }
-.chart-wrap { position:relative; height:160px; }
-
-/* ══════════════════════════════
-   RIGHT — RAAS + ADH + Insight
-══════════════════════════════ */
-.right-col {
-  grid-row:1/3;
-  display:flex; flex-direction:column; gap:16px;
-}
+.case-b:hover{border-color:var(--b1);color:var(--t0);}
+.case-b.on{background:rgba(255,234,0,.08);border-color:rgba(255,234,0,.4);color:var(--yellow);}
 
 /* RAAS chain */
-.raas-chain {
-  display:flex; flex-direction:column; gap:6px;
-  margin-top:4px;
+.raas-node{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;border-radius:8px;border:1px solid var(--b0);
+  background:rgba(0,0,0,.2);transition:.35s;
 }
-.raas-node {
-  display:flex; align-items:center; justify-content:space-between;
-  background:rgba(0,0,0,.22);
-  border:1px solid var(--border-dim);
-  border-radius:9px; padding:9px 13px;
-  transition:border-color .35s, background .35s;
-}
-.raas-node.active {
-  border-color:rgba(255,165,2,.4);
-  background:rgba(255,165,2,.06);
-}
-.raas-node-name { font-size:.75rem; font-weight:600; }
-.raas-node-sub { font-size:.62rem; color:var(--text-dim); margin-top:2px; }
-.raas-node-val {
-  font-family:'JetBrains Mono',monospace;
-  font-size:.8rem; font-weight:600; color:var(--c-gold);
-  padding:3px 9px; border-radius:5px;
-  background:rgba(255,165,2,.1);
-  transition:all .35s;
-}
-.raas-arrow {
-  text-align:center; font-size:.8rem; color:var(--text-dim);
-  line-height:1; margin:-2px 0;
-}
-
-/* ADH panel */
-.adh-effect-row {
-  display:grid; grid-template-columns:1fr 1fr; gap:8px;
-  margin-top:8px;
-}
-.adh-cell {
-  background:rgba(0,0,0,.2);
-  border:1px solid var(--border-dim);
-  border-radius:8px; padding:9px 11px;
-}
-.adh-cell-lbl { font-size:.62rem; color:var(--text-dim); letter-spacing:.8px; text-transform:uppercase; }
-.adh-cell-val {
-  font-family:'JetBrains Mono',monospace;
-  font-size:.95rem; font-weight:600; margin-top:3px;
-  transition:color .35s;
-}
+.raas-node.lit{border-color:rgba(255,234,0,.35);background:rgba(255,234,0,.05);}
+.rn-name{font-size:.72rem;font-weight:700;}
+.rn-sub{font-size:.58rem;color:var(--t2);font-family:'JetBrains Mono',monospace;}
+.rn-val{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;
+  padding:2px 8px;border-radius:4px;background:rgba(255,234,0,.08);color:var(--yellow);transition:.3s;}
+.raas-arr{text-align:center;color:var(--t2);font-size:.7rem;padding:1px 0;}
 
 /* Progress bars */
-.prog-wrap { margin-top:10px; }
-.prog-row { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
-.prog-lbl { font-size:.68rem; color:var(--text-mid); width:100px; flex-shrink:0; }
-.prog-bar { flex:1; height:5px; background:rgba(255,255,255,.05); border-radius:3px; overflow:hidden; }
-.prog-fill { height:100%; border-radius:3px; transition:width .5s ease; }
-.pf-gold{background:linear-gradient(90deg,var(--c-gold),rgba(255,165,2,.4));}
-.pf-blue{background:linear-gradient(90deg,var(--c-blue),rgba(30,144,255,.4));}
-.pf-teal{background:linear-gradient(90deg,var(--c-teal),rgba(0,201,167,.4));}
-.pf-red{background:linear-gradient(90deg,var(--c-red),rgba(255,71,87,.4));}
-.pf-purple{background:linear-gradient(90deg,var(--c-purple),rgba(165,94,234,.4));}
-.prog-pct { font-family:'JetBrains Mono',monospace; font-size:.65rem; color:var(--text-mid); width:32px; text-align:left; }
+.pr{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.pr-l{font-size:.66rem;color:var(--t1);flex:0 0 90px;}
+.pr-t{flex:1;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
+.pr-f{height:100%;border-radius:3px;transition:width .5s ease;}
+.pr-p{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--t2);width:32px;text-align:left;}
+
+/* Homeostasis */
+.hb{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:8px;border:1px solid;font-size:.72rem;font-weight:700;}
+.hb-ok  {background:rgba(0,230,118,.06);border-color:rgba(0,230,118,.3); color:var(--green);}
+.hb-comp{background:rgba(255,234,0,.07);border-color:rgba(255,234,0,.3); color:var(--yellow);}
+.hb-fail{background:rgba(255,23,68,.08);border-color:rgba(255,23,68,.35);color:var(--red);}
+
+/* ══════════════════════════════════════════
+   COLUMN 2 — CHARTS (center)
+══════════════════════════════════════════ */
+.col-charts{
+  background:var(--bg-page);
+  border-left:1px solid var(--b0);
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:0;
+}
+.charts-inner{
+  padding:var(--pad);
+  display:flex;flex-direction:column;gap:var(--gap);
+  flex:1;
+}
+
+/* Monitor cards strip */
+.mon-strip{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:8px;
+}
+.mon{
+  background:var(--bg-card);border:1px solid var(--b0);border-radius:10px;
+  padding:11px 10px;position:relative;overflow:hidden;transition:border-color .3s,box-shadow .3s;
+}
+.mon:hover{border-color:var(--b1);box-shadow:0 0 14px rgba(41,121,255,.12);}
+.mon::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.m-hr::before   {background:linear-gradient(90deg,var(--red),transparent);}
+.m-bp::before   {background:linear-gradient(90deg,var(--cyan),transparent);}
+.m-gfr::before  {background:linear-gradient(90deg,var(--purple),transparent);}
+.m-urine::before{background:linear-gradient(90deg,var(--teal),transparent);}
+.m-na::before   {background:linear-gradient(90deg,var(--orange),transparent);}
+.m-k::before    {background:linear-gradient(90deg,var(--yellow),transparent);}
+.m-ico{font-size:1rem;display:block;margin-bottom:4px;}
+.m-lbl{font-size:.56rem;color:var(--t2);letter-spacing:.9px;text-transform:uppercase;margin-bottom:3px;}
+.m-val{font-family:'JetBrains Mono',monospace;font-size:1.22rem;font-weight:700;line-height:1.1;transition:color .35s;}
+.m-unit{font-size:.56rem;color:var(--t2);margin-top:2px;}
+.mon-d{position:absolute;top:8px;left:7px;font-family:'JetBrains Mono',monospace;
+  font-size:.55rem;padding:1px 5px;border-radius:3px;font-weight:700;}
+.d-up{background:rgba(255,23,68,.14);color:var(--red);}
+.d-dn{background:rgba(0,229,255,.10);color:var(--cyan);}
+.d-eq{background:rgba(46,65,90,.35);color:var(--t2);}
+
+/* ── Chart cards ── */
+.chart-card{
+  background:var(--chart-bg);
+  border:1px solid var(--b1);
+  border-radius:12px;padding:var(--pad);
+  display:flex;flex-direction:column;gap:10px;
+  box-shadow:0 4px 24px rgba(0,0,0,.3);
+}
+.chart-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.chart-title-wrap .ct{font-size:.85rem;font-weight:800;color:var(--t0);}
+.chart-title-wrap .cs{font-size:.62rem;color:var(--t2);margin-top:2px;}
+.chart-legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.cl{display:flex;align-items:center;gap:4px;font-size:.64rem;color:var(--t1);}
+.cl-d{width:10px;height:3px;border-radius:2px;}
+.chart-body{height:170px;position:relative;}
+.chart-body canvas{position:absolute;inset:0;}
+
+/* Starling row */
+.starling-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.sc{
+  background:rgba(0,0,0,.25);border:1px solid var(--b0);border-radius:7px;padding:7px 9px;text-align:center;
+}
+.sc-l{font-size:.58rem;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;}
+.sc-v{font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:700;margin-top:2px;}
 
 /* Insight */
-.insight-panel { flex:1; }
-.insight-body {
-  font-size:.8rem; line-height:1.85; color:var(--text-mid);
+.insight{
+  background:rgba(101,31,255,.06);
+  border:1px solid rgba(101,31,255,.2);
+  border-radius:12px;padding:14px;
 }
-.insight-body strong { color:var(--text-bright); font-weight:600; }
-.hl-r{color:var(--c-red);} .hl-c{color:var(--c-cyan);} .hl-g{color:var(--c-green);}
-.hl-gl{color:var(--c-gold);} .hl-p{color:var(--c-purple);} .hl-t{color:var(--c-teal);}
+.ins-h{display:flex;align-items:center;gap:9px;margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid rgba(101,31,255,.15);}
+.ins-badge{
+  background:linear-gradient(135deg,rgba(101,31,255,.22),rgba(101,31,255,.06));
+  border:1px solid rgba(101,31,255,.35);padding:3px 10px;border-radius:13px;
+  font-size:.6rem;font-weight:800;letter-spacing:1.5px;color:var(--indigo);text-transform:uppercase;
+}
+.ins-title{font-size:.82rem;font-weight:800;}
+.ins-body{font-size:.76rem;line-height:1.9;color:var(--t1);}
+.ins-body strong{color:var(--t0);}
+.hl-r{color:var(--red);} .hl-c{color:var(--cyan);} .hl-g{color:var(--green);}
+.hl-y{color:var(--yellow);} .hl-p{color:var(--purple);} .hl-t{color:var(--teal);} .hl-o{color:var(--orange);}
+.mflow{
+  display:flex;flex-wrap:wrap;align-items:center;gap:4px;
+  margin-top:10px;padding:9px 11px;
+  background:rgba(0,0,0,.25);border:1px solid var(--b0);border-radius:8px;direction:rtl;
+}
+.mf{font-size:.64rem;padding:3px 8px;border-radius:4px;font-weight:700;white-space:nowrap;}
+.mf-arr{color:var(--t2);font-size:.7rem;}
+.mf-r{background:rgba(255,23,68,.12);color:var(--red);border:1px solid rgba(255,23,68,.25);}
+.mf-c{background:rgba(0,229,255,.08);color:var(--cyan);border:1px solid rgba(0,229,255,.2);}
+.mf-g{background:rgba(0,230,118,.08);color:var(--green);border:1px solid rgba(0,230,118,.2);}
+.mf-y{background:rgba(255,234,0,.1);color:var(--yellow);border:1px solid rgba(255,234,0,.2);}
+.mf-p{background:rgba(101,31,255,.1);color:var(--indigo);border:1px solid rgba(101,31,255,.2);}
+.mf-t{background:rgba(0,191,165,.1);color:var(--teal);border:1px solid rgba(0,191,165,.2);}
+.mf-o{background:rgba(255,109,0,.1);color:var(--orange);border:1px solid rgba(255,109,0,.2);}
+.mf-n{background:rgba(46,65,90,.3);color:var(--t1);border:1px solid var(--b0);}
 
-.mech-flow {
-  display:flex; flex-wrap:wrap; align-items:center; gap:5px;
-  margin-top:12px; padding:10px 12px;
-  background:rgba(0,0,0,.22);
-  border:1px solid var(--border-dim); border-radius:9px;
-  direction:rtl;
+/* ══════════════════════════════════════════
+   COLUMN 3 — VISUAL (right / left in RTL)
+══════════════════════════════════════════ */
+.col-vis{
+  background:var(--bg-panel);
+  border-right:1px solid var(--b0);
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:0;
 }
-.mf-step {
-  font-size:.67rem; padding:3px 9px; border-radius:5px; font-weight:600;
-  white-space:nowrap;
-}
-.mf-arrow{color:var(--text-dim);font-size:.75rem;}
-.mf-r{background:rgba(255,71,87,.12);color:var(--c-red);border:1px solid rgba(255,71,87,.25);}
-.mf-c{background:rgba(0,229,255,.08);color:var(--c-cyan);border:1px solid rgba(0,229,255,.2);}
-.mf-g{background:rgba(46,213,115,.08);color:var(--c-green);border:1px solid rgba(46,213,115,.2);}
-.mf-gl{background:rgba(255,165,2,.1);color:var(--c-gold);border:1px solid rgba(255,165,2,.2);}
-.mf-p{background:rgba(165,94,234,.1);color:var(--c-purple);border:1px solid rgba(165,94,234,.2);}
-.mf-t{background:rgba(0,201,167,.1);color:var(--c-teal);border:1px solid rgba(0,201,167,.2);}
-.mf-n{background:rgba(46,65,90,.3);color:var(--text-mid);border:1px solid var(--border-dim);}
+.vis-inner{padding:var(--pad);display:flex;flex-direction:column;gap:var(--gap);}
 
-/* fluid wave bar */
-.fluid-wave-bar {
-  position:fixed; top:0; left:0; width:100%; height:3px;
-  background:linear-gradient(90deg,transparent,var(--c-gold),transparent);
-  transform:translateX(-100%); z-index:200; pointer-events:none;
+/* ── HEART PANEL ── */
+.heart-panel{
+  background:rgba(255,23,68,.06);
+  border:1px solid rgba(255,23,68,.18);
+  border-radius:12px;padding:16px;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
 }
-.fluid-wave-bar.run{animation:fw-sweep .85s ease-out forwards;}
-@keyframes fw-sweep{0%{transform:translateX(-100%);opacity:1;}100%{transform:translateX(100%);opacity:0;}}
+.heart-ring-wrap{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  width:110px;height:110px;
+}
+.hring{position:absolute;border-radius:50%;border:1px solid rgba(255,23,68,.22);animation:hra 1s ease-out infinite;}
+.hring:nth-child(1){width:80px;height:80px;}
+.hring:nth-child(2){width:105px;height:105px;animation-delay:.18s;opacity:.4;}
+@keyframes hra{0%{transform:scale(.6);opacity:.85;}100%{transform:scale(1.8);opacity:0;}}
+#hsvg{position:relative;z-index:2;animation:hbeat 1s ease-in-out infinite;
+  filter:drop-shadow(0 0 14px rgba(255,23,68,.75));transition:animation-duration .25s;}
+@keyframes hbeat{0%,100%{transform:scale(1);}14%{transform:scale(1.24);}28%{transform:scale(1);}42%{transform:scale(1.12);}58%{transform:scale(1);}}
 
-/* Renin alert strip */
-.renin-alert {
-  display:none;
-  align-items:center; gap:8px;
-  background:rgba(255,165,2,.07);
-  border:1px solid rgba(255,165,2,.3);
-  border-radius:9px; padding:9px 14px;
-  font-size:.75rem; color:var(--c-gold);
-  margin-top:10px; font-weight:600;
+.bpm-box{
+  background:rgba(255,23,68,.12);border:1px solid rgba(255,23,68,.35);
+  border-radius:12px;padding:8px 22px;text-align:center;
+  box-shadow:0 0 20px rgba(255,23,68,.15);
 }
-.renin-alert.show{display:flex;}
-.ra-dot{width:8px;height:8px;border-radius:50%;background:var(--c-gold);animation:live-pulse 1s infinite;}
+.bpm-num{
+  font-family:'JetBrains Mono',monospace;font-size:2.4rem;font-weight:700;
+  color:var(--red);text-shadow:0 0 18px rgba(255,23,68,.6);line-height:1;
+}
+.bpm-lbl{font-size:.6rem;color:rgba(255,71,87,.65);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+
+.heart-stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;
+}
+.hs-cell{
+  background:rgba(0,0,0,.2);border:1px solid rgba(255,23,68,.15);border-radius:8px;padding:7px 9px;text-align:center;
+}
+.hs-lbl{font-size:.58rem;color:rgba(255,71,87,.5);text-transform:uppercase;letter-spacing:.7px;}
+.hs-val{font-family:'JetBrains Mono',monospace;font-size:.92rem;font-weight:700;margin-top:2px;color:var(--t0);}
+
+.fs-bar-wrap{width:100%;background:rgba(255,234,0,.06);border:1px solid rgba(255,234,0,.18);border-radius:8px;padding:7px 10px;}
+.fs-bar-lbl{font-size:.6rem;color:rgba(255,234,0,.6);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;display:flex;justify-content:space-between;}
+.fs-track{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+.fs-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--yellow),rgba(255,234,0,.4));transition:width .5s ease;}
+
+/* ── NEPHRON PANEL ── */
+.nephron-panel{
+  background:rgba(0,191,165,.04);
+  border:1px solid rgba(0,191,165,.18);
+  border-radius:12px;padding:14px;
+  position:relative;overflow:hidden;
+  flex:1;min-height:380px;
+}
+#particleCanvas{position:absolute;inset:0;z-index:2;pointer-events:none;}
+.nph-title{
+  font-size:.64rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+  color:var(--t1);display:flex;align-items:center;gap:6px;margin-bottom:8px;position:relative;z-index:3;
+}
+.nph-title::before{content:'';width:3px;height:12px;border-radius:2px;background:var(--teal);}
+.nph-body{position:relative;z-index:3;display:flex;align-items:flex-start;justify-content:space-between;gap:6px;}
+.nph-stats{display:flex;flex-direction:column;gap:5px;flex:0 0 95px;}
+.ns{
+  background:rgba(0,0,0,.25);border:1px solid var(--b0);border-radius:7px;padding:7px 9px;
+}
+.ns-l{font-size:.58rem;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;}
+.ns-v{font-family:'JetBrains Mono',monospace;font-size:.88rem;font-weight:700;margin-top:2px;transition:color .35s;}
+.nph-leg{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  display:flex;gap:7px;z-index:4;flex-wrap:wrap;justify-content:center;
+}
+.vl{
+  display:flex;align-items:center;gap:4px;font-size:.58rem;color:var(--t1);
+  background:rgba(3,11,24,.8);border:1px solid var(--b0);padding:3px 7px;border-radius:9px;
+}
+.vl-d{width:6px;height:6px;border-radius:50%;}
 </style>
 </head>
 <body>
-<div class="fluid-wave-bar" id="fwBar"></div>
-<div class="wrap">
 
-<!-- ══ HEADER ══ -->
-<div class="header">
-  <div class="hdr-left">
-    <div class="hdr-icon">🫀</div>
-    <div>
-      <div class="hdr-title">محاكاة فسيولوجيا القلب والكلية المتقدمة</div>
-      <div class="hdr-sub">نموذج تفاعلي — RAAS · ADH · الجهاز العصبي الذاتي · الكليون</div>
+<div class="fw" id="fwBar"></div>
+
+<!-- ══ HERO HEADER ══ -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-icon">🫀</div>
+      <div>
+        <div class="hero-title">منصة المحاكاة الفسيولوجية المتكاملة</div>
+        <div class="hero-sub">Advanced Physiological Research Suite — القلب · الكلية · RAAS · ADH · الأيض · الغازات · الإلكتروليتات · الأدوية</div>
+      </div>
     </div>
-  </div>
-  <div class="hdr-right">
-    <div class="badge badge-live"><div class="dot"></div>محاكاة نشطة</div>
-    <div class="badge badge-version">v2.0</div>
+    <div class="hero-right">
+      <div class="chip chip-live"><div class="dot"></div>محاكاة نشطة</div>
+      <div class="chip chip-state" id="hStatePill">⚖ Homeostasis: مستقر</div>
+      <div class="chip chip-ver">v5.0 · 2025</div>
+    </div>
   </div>
 </div>
 
-<!-- ══ MAIN LAYOUT ══ -->
-<div class="layout">
+<!-- ══ ALERT STRIP ══ -->
+<div class="astrip" id="alertStrip">
+  <span id="alertMsg">—</span>
+  <button class="as-x" onclick="dismissAlert()">✕</button>
+</div>
 
-  <!-- ══ LEFT: CONTROL PANEL ══ -->
-  <div class="panel ctrl-panel">
-    <div class="panel-title pt-blue">التحكم في الهرمونات والأعصاب</div>
+<!-- ══ ROOT GRID ══ -->
+<div class="root">
 
-    <!-- Heart -->
-    <div class="heart-section">
-      <div class="heart-wrap">
-        <div class="heart-ring hr1"></div>
-        <div class="heart-ring hr2"></div>
-        <svg id="heartSvg" width="54" height="50" viewBox="0 0 100 90">
-          <defs>
-            <radialGradient id="hg" cx="40%" cy="35%">
-              <stop offset="0%" stop-color="#ff6b6b"/>
-              <stop offset="100%" stop-color="#c0392b"/>
-            </radialGradient>
-          </defs>
-          <path d="M50 85 C50 85 4 54 4 28 C4 14 16 4 29 4 C37 4 45 9 50 18 C55 9 63 4 71 4 C84 4 96 14 96 28 C96 54 50 85 50 85Z" fill="url(#hg)"/>
-          <path d="M50 76 C50 76 10 50 10 28 C10 18 20 10 31 10 C40 10 46 16 50 24" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="2.5"/>
-        </svg>
+  <!-- ════════════════════════════════════
+       COL 1 — CONTROLS
+  ════════════════════════════════════ -->
+  <div class="col-ctrl">
+
+    <!-- Autonomic NS -->
+    <div class="cg cg-heart">
+      <div class="cg-head"><div class="cg-bar" style="background:var(--red)"></div><div class="cg-title">الجهاز العصبي الذاتي</div></div>
+      <div class="cg-body">
+        <div class="sr">
+          <div class="sr-top"><div><div class="sr-name">الأدرينالين</div><div class="sr-eng">Epinephrine β1 / α1</div></div><div class="sv sv-r" id="adrV">0</div></div>
+          <input type="range" id="adrS" min="0" max="10" value="0" step="0.5">
+        </div>
+        <div class="sr">
+          <div class="sr-top"><div><div class="sr-name">الأستيل كولين</div><div class="sr-eng">Acetylcholine M2</div></div><div class="sv sv-c" id="achV">0</div></div>
+          <input type="range" id="achS" min="0" max="10" value="0" step="0.5">
+        </div>
       </div>
-      <div class="bpm-big" id="bpmBig">75</div>
-      <div class="bpm-lbl">ضربة / دقيقة · BPM</div>
     </div>
 
-    <!-- Adrenaline -->
-    <div class="sldr-block">
-      <div class="sldr-hdr">
-        <div><div class="sldr-name">الأدرينالين</div><div class="sldr-sub">Epinephrine — β1 / α1</div></div>
-        <div class="sldr-badge sb-red" id="adrV">0</div>
+    <!-- Gases & pH -->
+    <div class="cg cg-gas">
+      <div class="cg-head"><div class="cg-bar" style="background:var(--teal)"></div><div class="cg-title">الغازات والحموضة</div></div>
+      <div class="cg-body">
+        <div class="sr">
+          <div class="sr-top"><div><div class="sr-name">أكسجين O₂</div><div class="sr-eng">SpO₂ %</div></div><div class="sv sv-g" id="o2V">98</div></div>
+          <input type="range" id="o2S" min="70" max="100" value="98" step="0.5">
+        </div>
+        <div class="sr">
+          <div class="sr-top"><div><div class="sr-name">ثاني أكسيد الكربون</div><div class="sr-eng">PaCO₂ mmHg</div></div><div class="sv sv-o" id="co2V">40</div></div>
+          <input type="range" id="co2S" min="20" max="80" value="40" step="1">
+        </div>
+        <div class="sr">
+          <div class="sr-top"><div><div class="sr-name">حموضة الدم pH</div><div class="sr-eng">Arterial pH</div></div><div class="sv sv-p" id="phV">7.40</div></div>
+          <input type="range" id="phS" min="6.80" max="7.80" value="7.40" step="0.01">
+        </div>
+        <div class="ir"><span class="ir-l">التوازن الحامضي</span><span class="ir-v" id="acidSt" style="color:var(--green)">طبيعي</span></div>
       </div>
-      <input type="range" class="sldr-red" id="adrS" min="0" max="10" value="0" step="0.5">
     </div>
 
-    <!-- Acetylcholine -->
-    <div class="sldr-block">
-      <div class="sldr-hdr">
-        <div><div class="sldr-name">الأستيل كولين</div><div class="sldr-sub">Acetylcholine — M2</div></div>
-        <div class="sldr-badge sb-cyan" id="achV">0</div>
+    <!-- Metabolism -->
+    <div class="cg cg-meta">
+      <div class="cg-head"><div class="cg-bar" style="background:var(--purple)"></div><div class="cg-title">الأيض والحرارة</div></div>
+      <div class="cg-body">
+        <div class="sr">
+          <div class="sr-top"><div><div class="sr-name">الغدة الدرقية T4</div><div class="sr-eng">Thyroid — BMR</div></div><div class="sv sv-p" id="thyV">5</div></div>
+          <input type="range" id="thyS" min="0" max="10" value="5" step="0.5">
+        </div>
+        <div class="sr">
+          <div class="sr-top"><div><div class="sr-name">درجة الحرارة °C</div><div class="sr-eng">Core Body Temp</div></div><div class="sv sv-o" id="tempV">37.0</div></div>
+          <input type="range" id="tempS" min="34" max="41" value="37" step="0.1">
+        </div>
+        <div class="ir"><span class="ir-l">معدل الأيض BMR</span><span class="ir-v" id="bmrV" style="color:var(--purple)">1700 kcal</span></div>
+        <div class="ir"><span class="ir-l">التعرق</span><span class="ir-v" id="sweatV" style="color:var(--orange)">طبيعي</span></div>
+        <div class="sep"></div>
+        <div style="font-size:.64rem;color:var(--t2);margin-bottom:4px;">النشاط البدني</div>
+        <div class="act-row">
+          <button class="tog on" data-act="1"   onclick="setAct(1,this)">راحة</button>
+          <button class="tog"    data-act="2.5" onclick="setAct(2.5,this)">خفيف</button>
+          <button class="tog"    data-act="5"   onclick="setAct(5,this)">متوسط</button>
+          <button class="tog"    data-act="8"   onclick="setAct(8,this)">شديد</button>
+        </div>
+        <div class="ir"><span class="ir-l">مستوى النشاط</span><span class="ir-v" id="actV" style="color:var(--green)">1×</span></div>
       </div>
-      <input type="range" class="sldr-cyan" id="achS" min="0" max="10" value="0" step="0.5">
     </div>
 
-    <!-- Renin -->
-    <div class="sldr-block">
-      <div class="sldr-hdr">
-        <div><div class="sldr-name">الرينين (Renin)</div><div class="sldr-sub">JG Cells — RAAS Axis</div></div>
-        <div class="sldr-badge sb-gold" id="reninV">0</div>
+    <!-- Preload / Frank-Starling -->
+    <div class="cg cg-fluid">
+      <div class="cg-head"><div class="cg-bar" style="background:var(--yellow)"></div><div class="cg-title">الحمل القبلي — Frank-Starling</div></div>
+      <div class="cg-body">
+        <div class="sr">
+          <div class="sr-top"><div><div class="sr-name">حجم الدم الكلي</div><div class="sr-eng">Blood Volume (L)</div></div><div class="sv sv-y" id="volV">5.0</div></div>
+          <input type="range" id="volS" min="2.0" max="8.0" value="5.0" step="0.1">
+        </div>
+        <div class="ir"><span class="ir-l">EDV نهاية انبساط</span><span class="ir-v" id="edvV" style="color:var(--yellow)">120 mL</span></div>
+        <div class="ir"><span class="ir-l">SV حجم الضربة</span><span class="ir-v" id="svV" style="color:var(--cyan)">70 mL</span></div>
+        <div class="ir"><span class="ir-l">CO الناتج القلبي</span><span class="ir-v" id="coV" style="color:var(--green)">5.25 L/min</span></div>
+        <div class="sep"></div>
+        <button class="btn btn-f" onclick="doFluid()">💧 محلول وريدي — Fluid Bolus</button>
+        <button class="btn btn-r" onclick="resetAll()">↺ إعادة تعيين جميع القيم</button>
       </div>
-      <input type="range" class="sldr-gold" id="reninS" min="0" max="10" value="0" step="0.5">
+    </div>
+
+    <!-- Electrolytes -->
+    <div class="cg cg-elec">
+      <div class="cg-head"><div class="cg-bar" style="background:var(--orange)"></div><div class="cg-title">الإلكتروليتات</div></div>
+      <div class="cg-body">
+        <div class="sr">
+          <div class="sr-top"><div><div class="sr-name">صوديوم Na⁺</div><div class="sr-eng">mEq/L  (طبيعي: 135-145)</div></div><div class="sv sv-o" id="naSlV">140</div></div>
+          <input type="range" id="naS" min="110" max="165" value="140" step="1">
+        </div>
+        <div class="sr">
+          <div class="sr-top"><div><div class="sr-name">بوتاسيوم K⁺</div><div class="sr-eng">mEq/L  (طبيعي: 3.5-5.0)</div></div><div class="sv sv-y" id="kSlV">4.0</div></div>
+          <input type="range" id="kS" min="1.5" max="8.0" value="4.0" step="0.1">
+        </div>
+        <div class="ir"><span class="ir-l">تأثير K⁺ على القلب</span><span class="ir-v" id="kCardV" style="color:var(--green)">طبيعي</span></div>
+      </div>
+    </div>
+
+    <!-- RAAS -->
+    <div class="cg cg-fluid">
+      <div class="cg-head"><div class="cg-bar" style="background:var(--yellow)"></div><div class="cg-title">محور RAAS</div></div>
+      <div class="cg-body">
+        <div class="sr">
+          <div class="sr-top"><div><div class="sr-name">الرينين</div><div class="sr-eng">Renin — JG Cells</div></div><div class="sv sv-y" id="renV">0</div></div>
+          <input type="range" id="renS" min="0" max="10" value="0" step="0.5">
+        </div>
+        <div class="sep"></div>
+        <div class="raas-node" id="rn0"><div><div class="rn-name">🫘 رينين</div><div class="rn-sub">JG Cells</div></div><div class="rn-val" id="rnv0">منخفض</div></div>
+        <div class="raas-arr">↓</div>
+        <div class="raas-node" id="rn1"><div><div class="rn-name">🔗 أنجيوتنسين II</div><div class="rn-sub">ACE — الرئتان</div></div><div class="rn-val" id="rnv1">منخفض</div></div>
+        <div class="raas-arr">↓</div>
+        <div class="raas-node" id="rn2"><div><div class="rn-name">💊 ألدوستيرون</div><div class="rn-sub">Na⁺ / H₂O امتصاص</div></div><div class="rn-val" id="rnv2">منخفض</div></div>
+        <div class="ir"><span class="ir-l">تضيق وعائي</span><span class="ir-v" id="vasoV" style="color:var(--teal)">لا يوجد</span></div>
+        <div class="ir"><span class="ir-l">امتصاص Na⁺</span><span class="ir-v" id="naAbsV" style="color:var(--orange)">طبيعي</span></div>
+      </div>
     </div>
 
     <!-- ADH -->
-    <div class="sldr-block">
-      <div class="sldr-hdr">
-        <div><div class="sldr-name">هرمون ADH</div><div class="sldr-sub">Antidiuretic Hormone</div></div>
-        <div class="sldr-badge sb-blue" id="adhV">0</div>
-      </div>
-      <input type="range" class="sldr-blue" id="adhS" min="0" max="10" value="0" step="0.5">
-    </div>
-
-    <div class="divider"></div>
-
-    <!-- Fluid bolus -->
-    <button class="btn-fluid" onclick="doFluid()">💧 محلول وريدي (Fluid Bolus)</button>
-    <button class="btn-reset" onclick="resetAll()">↺ إعادة تعيين</button>
-
-    <!-- Renin alert -->
-    <div class="renin-alert" id="reninAlert">
-      <div class="ra-dot"></div>
-      <span>الكلية تُفرز رينيناً — انخفاض ضغط الدم!</span>
-    </div>
-
-    <!-- General alert -->
-    <div class="alert-box" id="alertBox"></div>
-  </div>
-
-  <!-- ══ CENTER COLUMN ══ -->
-  <div class="center-col">
-
-    <!-- Visual area: Heart + Nephron + Particles -->
-    <div class="visual-area">
-      <canvas id="particleCanvas"></canvas>
-      <div class="panel-title pt-cyan" style="position:relative;z-index:3;">تمثيل بصري — القلب والكليون</div>
-      <div class="visual-row" style="position:relative;z-index:3;">
-
-        <!-- Heart diagram label -->
-        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <svg width="100" height="92" viewBox="0 0 100 90" style="filter:drop-shadow(0 0 14px rgba(255,71,87,.5))">
-            <defs><radialGradient id="hg2" cx="40%" cy="35%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="100%" stop-color="#a93226"/></radialGradient></defs>
-            <path d="M50 85 C50 85 4 54 4 28 C4 14 16 4 29 4 C37 4 45 9 50 18 C55 9 63 4 71 4 C84 4 96 14 96 28 C96 54 50 85 50 85Z" fill="url(#hg2)" opacity=".92"/>
-            <path d="M30 40 Q34 28 44 32 Q50 35 50 42" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
-          </svg>
-          <div style="font-size:.7rem;color:var(--text-mid);letter-spacing:1px;">القلب · Heart</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--c-red);font-weight:600;" id="visHR">75 BPM</div>
+    <div class="cg cg-renal">
+      <div class="cg-head"><div class="cg-bar" style="background:var(--blue)"></div><div class="cg-title">هرمون ADH / Vasopressin</div></div>
+      <div class="cg-body">
+        <div class="sr">
+          <div class="sr-top"><div><div class="sr-name">ADH</div><div class="sr-eng">AQP-2 — القنوات الجامعة</div></div><div class="sv sv-b" id="adhV">0</div></div>
+          <input type="range" id="adhS" min="0" max="10" value="0" step="0.5">
         </div>
-
-        <!-- Center labels -->
-        <div style="display:flex;flex-direction:column;align-items:center;gap:14px;opacity:.7;">
-          <div style="font-size:.65rem;color:var(--c-cyan);letter-spacing:1px;">←ترشيح</div>
-          <div style="width:1px;height:60px;background:linear-gradient(180deg,var(--c-cyan),var(--c-teal));opacity:.4;"></div>
-          <div style="font-size:.65rem;color:var(--c-teal);letter-spacing:1px;">بول↓</div>
-        </div>
-
-        <!-- Nephron SVG -->
-        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <svg id="nephronSvg" width="160" height="230" viewBox="0 0 160 230" style="overflow:visible;">
-            <!-- Bowman's capsule -->
-            <ellipse cx="80" cy="28" rx="24" ry="24" fill="none" stroke="rgba(0,229,255,.5)" stroke-width="1.8"/>
-            <ellipse cx="80" cy="28" rx="14" ry="14" fill="rgba(30,144,255,.15)" stroke="rgba(30,144,255,.4)" stroke-width="1.2"/>
-            <!-- Glomerulus -->
-            <circle cx="80" cy="28" r="8" fill="rgba(255,71,87,.3)" stroke="rgba(255,71,87,.6)" stroke-width="1.2"/>
-            <!-- PCT -->
-            <path d="M80 52 C80 65 100 68 100 80 C100 92 60 95 60 108 C60 118 80 120 80 130" fill="none" stroke="rgba(0,229,255,.7)" stroke-width="2.5" stroke-linecap="round"/>
-            <!-- Loop of Henle descending -->
-            <path d="M80 130 C80 145 60 148 55 162 C50 176 55 186 65 188" fill="none" stroke="rgba(30,144,255,.6)" stroke-width="2.2" stroke-linecap="round"/>
-            <!-- Loop of Henle ascending -->
-            <path d="M65 188 C76 190 90 186 95 172 C100 158 96 148 96 135" fill="none" stroke="rgba(0,201,167,.65)" stroke-width="2.2" stroke-linecap="round"/>
-            <!-- DCT -->
-            <path d="M96 135 C96 122 78 116 78 104 C78 93 100 90 100 80" fill="none" stroke="rgba(165,94,234,.65)" stroke-width="2" stroke-linecap="round"/>
-            <!-- Collecting duct -->
-            <line x1="100" y1="80" x2="110" y2="80" stroke="rgba(165,94,234,.4)" stroke-width="1.5" stroke-dasharray="3,2"/>
-            <path d="M110 80 L118 80 L118 220" fill="none" stroke="rgba(165,94,234,.55)" stroke-width="2.2" stroke-linecap="round"/>
-            <!-- Afferent arteriole -->
-            <path d="M50 20 Q65 14 70 22" fill="none" stroke="rgba(255,71,87,.55)" stroke-width="1.8" stroke-dasharray="4,2"/>
-            <!-- Efferent arteriole -->
-            <path d="M90 22 Q94 14 106 16" fill="none" stroke="rgba(255,165,2,.5)" stroke-width="1.6" stroke-dasharray="4,2"/>
-            <!-- Labels -->
-            <text x="80" y="8" text-anchor="middle" font-size="7" fill="rgba(0,229,255,.75)" font-family="Cairo,sans-serif">محفظة بومان</text>
-            <text x="112" y="18" font-size="6.5" fill="rgba(255,165,2,.7)" font-family="Cairo,sans-serif">صادر</text>
-            <text x="28" y="22" font-size="6.5" fill="rgba(255,71,87,.7)" font-family="Cairo,sans-serif">وارد</text>
-            <text x="105" y="95" font-size="6.5" fill="rgba(0,229,255,.65)" font-family="Cairo,sans-serif">PCT</text>
-            <text x="30" y="165" font-size="6.5" fill="rgba(30,144,255,.7)" font-family="Cairo,sans-serif">هنلي↓</text>
-            <text x="98" y="165" font-size="6.5" fill="rgba(0,201,167,.7)" font-family="Cairo,sans-serif">هنلي↑</text>
-            <text x="68" y="100" font-size="6.5" fill="rgba(165,94,234,.7)" font-family="Cairo,sans-serif">DCT</text>
-            <text x="122" y="155" font-size="6.5" fill="rgba(165,94,234,.7)" font-family="Cairo,sans-serif">قناة</text>
-            <text x="122" y="164" font-size="6.5" fill="rgba(165,94,234,.7)" font-family="Cairo,sans-serif">جامعة</text>
-            <text x="118" y="226" text-anchor="middle" font-size="7" fill="rgba(46,213,115,.75)" font-family="Cairo,sans-serif">بول ↓</text>
-            <!-- ADH effect indicator on collecting duct -->
-            <rect id="adhIndicator" x="112" y="80" width="12" height="140" rx="3"
-              fill="rgba(30,144,255,.06)" stroke="rgba(30,144,255,.25)" stroke-width="1" stroke-dasharray="3,2"/>
-            <text x="124" y="150" font-size="6" fill="rgba(30,144,255,.5)" font-family="Cairo,sans-serif">ADH</text>
-          </svg>
-          <div style="font-size:.7rem;color:var(--text-mid);letter-spacing:1px;">الكليون (Nephron)</div>
-        </div>
-
-      </div>
-
-      <!-- Legend -->
-      <div class="vis-legend">
-        <div class="vl-pill"><div class="vl-dot" style="background:var(--c-cyan);"></div>ترشيح</div>
-        <div class="vl-pill"><div class="vl-dot" style="background:var(--c-teal);"></div>إعادة امتصاص</div>
-        <div class="vl-pill"><div class="vl-dot" style="background:var(--c-gold);"></div>بول</div>
-        <div class="vl-pill"><div class="vl-dot" style="background:var(--c-red);"></div>دم</div>
+        <div class="ir"><span class="ir-l">AQP-2 (Aquaporin-2)</span><span class="ir-v" id="ecAQP" style="color:var(--t2)">غير نشط</span></div>
+        <div class="ir"><span class="ir-l">تركيز البول</span><span class="ir-v" id="ecOsm" style="color:var(--purple)">300 mOsm</span></div>
       </div>
     </div>
 
-    <!-- Monitors -->
-    <div class="monitors-row">
-      <div class="mon-card mc-bp">
-        <span class="mon-icon">🩺</span>
-        <div class="mon-lbl">ضغط الدم · BP</div>
-        <div class="mon-val" id="bpVal" style="color:var(--c-cyan);">120<span style="font-size:1rem">/</span>80</div>
-        <div class="mon-unit">mmHg</div>
-        <div class="mon-delta delta-eq" id="bpDelta">—</div>
-      </div>
-      <div class="mon-card mc-urine">
-        <span class="mon-icon">💧</span>
-        <div class="mon-lbl">إنتاج البول · Urine</div>
-        <div class="mon-val" id="urineVal" style="color:var(--c-teal);">1.0</div>
-        <div class="mon-unit">مل/دقيقة</div>
-        <div class="mon-delta delta-eq" id="urineDelta">—</div>
-      </div>
-      <div class="mon-card mc-gfr">
-        <span class="mon-icon">🔬</span>
-        <div class="mon-lbl">GFR — ترشيح كبيبي</div>
-        <div class="mon-val" id="gfrVal" style="color:var(--c-purple);">120</div>
-        <div class="mon-unit">مل/دقيقة</div>
-        <div class="mon-delta delta-eq" id="gfrDelta">—</div>
-      </div>
-      <div class="mon-card mc-reab">
-        <span class="mon-icon">♻️</span>
-        <div class="mon-lbl">إعادة الامتصاص · Reab.</div>
-        <div class="mon-val" id="reabVal" style="color:var(--c-gold);">99</div>
-        <div class="mon-unit">% من الراشح</div>
-        <div class="mon-delta delta-eq" id="reabDelta">—</div>
+    <!-- Drugs -->
+    <div class="cg" style="background:rgba(101,31,255,.04);">
+      <div class="cg-head"><div class="cg-bar" style="background:var(--indigo)"></div><div class="cg-title">الأدوية</div></div>
+      <div class="cg-body">
+        <div class="drug-b" id="dAce" onclick="togDrug('ace')">
+          <div><div style="font-weight:800">ACE Inhibitor</div><div class="drug-ef">↓ Angio II · ↓ ضغط · ↑ GFR</div></div>
+          <div class="drug-st" id="stAce">إيقاف</div>
+        </div>
+        <div class="drug-b" id="dDig" onclick="togDrug('dig')">
+          <div><div style="font-weight:800">Digoxin</div><div class="drug-ef">↑ انقباضية · ↓ نبض</div></div>
+          <div class="drug-st" id="stDig">إيقاف</div>
+        </div>
+        <div class="drug-b" id="dFur" onclick="togDrug('fur')">
+          <div><div style="font-weight:800">Furosemide (Loop Diuretic)</div><div class="drug-ef">↑↑ بول · ↓ Na⁺ · ↓ K⁺</div></div>
+          <div class="drug-st" id="stFur">إيقاف</div>
+        </div>
+        <div class="drug-b" id="dBeta" onclick="togDrug('beta')">
+          <div><div style="font-weight:800">Beta Blocker</div><div class="drug-ef">↓ نبض · ↓ ضغط</div></div>
+          <div class="drug-st" id="stBeta">إيقاف</div>
+        </div>
       </div>
     </div>
 
-    <!-- Chart -->
-    <div class="chart-panel">
+    <!-- Clinical Cases -->
+    <div class="cg" style="background:rgba(245,0,87,.04);">
+      <div class="cg-head"><div class="cg-bar" style="background:var(--pink)"></div><div class="cg-title">الحالات السريرية</div></div>
+      <div class="cg-body">
+        <div class="case-grid">
+          <button class="case-b on" id="c-normal"  onclick="loadCase('normal')">⚖ طبيعي</button>
+          <button class="case-b"    id="c-hf"      onclick="loadCase('hf')">💔 فشل القلب</button>
+          <button class="case-b"    id="c-di"      onclick="loadCase('di')">🏜 Diab. Insipidus</button>
+          <button class="case-b"    id="c-ras"     onclick="loadCase('ras')">🫘 تضيق شريان كلوي</button>
+          <button class="case-b"    id="c-shock"   onclick="loadCase('shock')">🚨 صدمة نقص حجم</button>
+          <button class="case-b"    id="c-ckd"     onclick="loadCase('ckd')">⚠ فشل كلوي مزمن</button>
+        </div>
+        <div class="ir"><span class="ir-l">الحالة الحالية</span><span class="ir-v" id="caseV" style="color:var(--cyan)">طبيعي</span></div>
+      </div>
+    </div>
+
+    <!-- Homeostasis -->
+    <div class="cg" style="background:rgba(0,230,118,.03);">
+      <div class="cg-head"><div class="cg-bar" style="background:var(--green)"></div><div class="cg-title">الهوميوستاسيس التعويضي</div></div>
+      <div class="cg-body">
+        <div class="hb hb-ok" id="hbBar"><span>✅</span><span id="hbTxt">النظام في توازن مستقر</span></div>
+        <div class="pr"><div class="pr-l">تصحيح RAAS</div><div class="pr-t"><div class="pr-f" id="pf1"></div></div><div class="pr-p" id="pp1">10%</div></div>
+        <div class="pr"><div class="pr-l">تصحيح ADH</div><div class="pr-t"><div class="pr-f" id="pf2"></div></div><div class="pr-p" id="pp2">5%</div></div>
+        <div class="pr"><div class="pr-l">تنشيط ودي</div><div class="pr-t"><div class="pr-f" id="pf3"></div></div><div class="pr-p" id="pp3">5%</div></div>
+        <div class="pr"><div class="pr-l">Frank-Starling</div><div class="pr-t"><div class="pr-f" id="pf4"></div></div><div class="pr-p" id="pp4">50%</div></div>
+      </div>
+    </div>
+
+  </div><!-- /col-ctrl -->
+
+  <!-- ════════════════════════════════════
+       COL 2 — CHARTS
+  ════════════════════════════════════ -->
+  <div class="col-charts">
+  <div class="charts-inner">
+
+    <!-- Monitor strip -->
+    <div class="mon-strip">
+      <div class="mon m-hr">
+        <span class="m-ico">❤️</span>
+        <div class="m-lbl">نبض القلب · HR</div>
+        <div class="m-val" id="mHR" style="color:var(--red)">75</div>
+        <div class="m-unit">BPM</div>
+        <div class="mon-d d-eq" id="dHR">—</div>
+      </div>
+      <div class="mon m-bp">
+        <span class="m-ico">🩺</span>
+        <div class="m-lbl">ضغط الدم · BP</div>
+        <div class="m-val" id="mBP" style="color:var(--cyan)">120/80</div>
+        <div class="m-unit">mmHg</div>
+        <div class="mon-d d-eq" id="dBP">—</div>
+      </div>
+      <div class="mon m-gfr">
+        <span class="m-ico">🔬</span>
+        <div class="m-lbl">GFR كبيبي</div>
+        <div class="m-val" id="mGFR" style="color:var(--purple)">120</div>
+        <div class="m-unit">mL/min</div>
+        <div class="mon-d d-eq" id="dGFR">—</div>
+      </div>
+      <div class="mon m-urine">
+        <span class="m-ico">💧</span>
+        <div class="m-lbl">إنتاج البول</div>
+        <div class="m-val" id="mUrine" style="color:var(--teal)">1.0</div>
+        <div class="m-unit">mL/min</div>
+        <div class="mon-d d-eq" id="dUrine">—</div>
+      </div>
+      <div class="mon m-na">
+        <span class="m-ico">🧂</span>
+        <div class="m-lbl">صوديوم Na⁺</div>
+        <div class="m-val" id="mNa" style="color:var(--orange)">140</div>
+        <div class="m-unit">mEq/L</div>
+        <div class="mon-d d-eq" id="dNa">—</div>
+      </div>
+      <div class="mon m-k">
+        <span class="m-ico">⚡</span>
+        <div class="m-lbl">بوتاسيوم K⁺</div>
+        <div class="m-val" id="mK" style="color:var(--yellow)">4.0</div>
+        <div class="m-unit">mEq/L</div>
+        <div class="mon-d d-eq" id="dK">—</div>
+      </div>
+    </div>
+
+    <!-- Chart 1: Hemodynamic -->
+    <div class="chart-card">
       <div class="chart-hdr">
-        <div>
-          <div class="chart-ttl">المؤشرات الحيوية — Live Vitals</div>
-          <div class="chart-sub">تتبع زمني: النبض · الضغط الانقباضي · GFR</div>
+        <div class="chart-title-wrap">
+          <div class="ct">الديناميكا القلبية الوعائية</div>
+          <div class="cs">النبض (BPM) · الضغط الانقباضي (mmHg) · الناتج القلبي ×10</div>
         </div>
         <div class="chart-legend">
-          <div class="cl-item"><div class="cl-dot" style="background:var(--c-red)"></div>BPM</div>
-          <div class="cl-item"><div class="cl-dot" style="background:var(--c-cyan)"></div>Systolic</div>
-          <div class="cl-item"><div class="cl-dot" style="background:var(--c-purple)"></div>GFR</div>
+          <div class="cl"><div class="cl-d" style="background:var(--red)"></div>HR / BPM</div>
+          <div class="cl"><div class="cl-d" style="background:var(--cyan)"></div>Systolic BP</div>
+          <div class="cl"><div class="cl-d" style="background:var(--green)"></div>CO × 10</div>
         </div>
       </div>
-      <div class="chart-wrap">
-        <canvas id="vChart"></canvas>
+      <div class="chart-body"><canvas id="ch1"></canvas></div>
+      <div class="starling-row">
+        <div class="sc"><div class="sc-l">EDV</div><div class="sc-v" id="vsSV" style="color:var(--yellow)">120 mL</div></div>
+        <div class="sc"><div class="sc-l">SV</div><div class="sc-v" id="vsCO" style="color:var(--cyan)">70 mL</div></div>
+        <div class="sc"><div class="sc-l">CO</div><div class="sc-v" id="vsCOv" style="color:var(--green)">5.25 L/m</div></div>
       </div>
     </div>
+
+    <!-- Chart 2: Renal -->
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title-wrap">
+          <div class="ct">الوظيفة الكلوية والإلكتروليتات</div>
+          <div class="cs">GFR (mL/min) · البول ×20 · Na⁺ ×0.85 · K⁺ ×25</div>
+        </div>
+        <div class="chart-legend">
+          <div class="cl"><div class="cl-d" style="background:var(--purple)"></div>GFR</div>
+          <div class="cl"><div class="cl-d" style="background:var(--teal)"></div>Urine × 20</div>
+          <div class="cl"><div class="cl-d" style="background:var(--orange)"></div>Na⁺ × 0.85</div>
+          <div class="cl"><div class="cl-d" style="background:var(--yellow)"></div>K⁺ × 25</div>
+        </div>
+      </div>
+      <div class="chart-body"><canvas id="ch2"></canvas></div>
+    </div>
+
+    <!-- Insight -->
+    <div class="insight">
+      <div class="ins-h">
+        <div class="ins-badge">⚗ تحليل فسيولوجي</div>
+        <div class="ins-title" id="insTitle">الحالة الطبيعية — Homeostasis مستقر</div>
+      </div>
+      <div class="ins-body" id="insBody">توازن فسيولوجي كامل. <strong>SA Node</strong>: <span class="hl-r">75 BPM</span>. GFR = <span class="hl-p">120 mL/min</span>. RAAS وADH في حالة راحة. K⁺ = <span class="hl-y">4.0 mEq/L</span>.</div>
+      <div class="mflow" id="mflow">
+        <span class="mf mf-n">راحة</span><span class="mf-arr">←</span>
+        <span class="mf mf-c">SA:75BPM</span><span class="mf-arr">←</span>
+        <span class="mf mf-p">GFR:120</span><span class="mf-arr">←</span>
+        <span class="mf mf-g">بول:1مل/د</span>
+      </div>
+    </div>
+
   </div>
+  </div><!-- /col-charts -->
 
-  <!-- ══ RIGHT COLUMN ══ -->
-  <div class="right-col">
+  <!-- ════════════════════════════════════
+       COL 3 — VISUAL
+  ════════════════════════════════════ -->
+  <div class="col-vis">
+  <div class="vis-inner">
 
-    <!-- RAAS panel -->
-    <div class="panel">
-      <div class="panel-title pt-gold">محور RAAS الهرموني</div>
-      <div class="raas-chain">
-        <div class="raas-node" id="rn0">
-          <div>
-            <div class="raas-node-name">🫘 رينين (Renin)</div>
-            <div class="raas-node-sub">الخلايا قرب الكبيبية · JG Cells</div>
-          </div>
-          <div class="raas-node-val" id="rnV0">منخفض</div>
+    <!-- HEART PANEL -->
+    <div class="heart-panel">
+      <div style="font-size:.64rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,71,87,.6);align-self:flex-start;">
+        القلب النابض · Beating Heart
+      </div>
+
+      <div class="heart-ring-wrap">
+        <div class="hring"></div>
+        <div class="hring"></div>
+        <svg id="hsvg" width="70" height="64" viewBox="0 0 100 90">
+          <defs>
+            <radialGradient id="hg" cx="38%" cy="32%">
+              <stop offset="0%" stop-color="#ff5f6d"/>
+              <stop offset="100%" stop-color="#b71c1c"/>
+            </radialGradient>
+            <filter id="hglow">
+              <feGaussianBlur stdDeviation="2" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <path filter="url(#hglow)"
+            d="M50 85 C50 85 4 54 4 28 C4 13 17 3 30 3 C38 3 46 8 50 18 C54 8 62 3 70 3 C83 3 96 13 96 28 C96 54 50 85 50 85Z"
+            fill="url(#hg)"/>
+          <path d="M50 76 C50 76 10 49 10 28 C10 17 21 9 32 9 C40 9 47 15 50 23"
+            fill="none" stroke="rgba(255,255,255,.2)" stroke-width="2.5"/>
+          <!-- Frank-Starling stretch indicators -->
+          <line id="fsl1" x1="22" y1="58" x2="34" y2="72" stroke="rgba(255,234,0,0)" stroke-width="2"/>
+          <line id="fsl2" x1="78" y1="58" x2="66" y2="72" stroke="rgba(255,234,0,0)" stroke-width="2"/>
+        </svg>
+      </div>
+
+      <div class="bpm-box">
+        <div class="bpm-num" id="bpmNum">75</div>
+        <div class="bpm-lbl">BPM — ضربة / دقيقة</div>
+      </div>
+
+      <div class="heart-stats">
+        <div class="hs-cell">
+          <div class="hs-lbl">BP</div>
+          <div class="hs-val" id="vsBP" style="color:var(--cyan)">120/80</div>
         </div>
-        <div class="raas-arrow">↓</div>
-        <div class="raas-node" id="rn1">
-          <div>
-            <div class="raas-node-name">🔗 أنجيوتنسين I→II</div>
-            <div class="raas-node-sub">تحويل في الرئتين · ACE</div>
-          </div>
-          <div class="raas-node-val" id="rnV1">منخفض</div>
+        <div class="hs-cell">
+          <div class="hs-lbl">CO</div>
+          <div class="hs-val" id="vsCOx" style="color:var(--green)">5.25</div>
         </div>
-        <div class="raas-arrow">↓</div>
-        <div class="raas-node" id="rn2">
-          <div>
-            <div class="raas-node-name">💊 ألدوستيرون</div>
-            <div class="raas-node-sub">قشرة الكظرية → Na⁺ امتصاص</div>
-          </div>
-          <div class="raas-node-val" id="rnV2">منخفض</div>
+        <div class="hs-cell">
+          <div class="hs-lbl">EDV</div>
+          <div class="hs-val" id="vsEDV" style="color:var(--yellow)">120 mL</div>
+        </div>
+        <div class="hs-cell">
+          <div class="hs-lbl">SV</div>
+          <div class="hs-val" id="vsSVx" style="color:var(--blue)">70 mL</div>
         </div>
       </div>
 
-      <div class="prog-wrap">
-        <div class="prog-row">
-          <div class="prog-lbl">نشاط RAAS</div>
-          <div class="prog-bar"><div class="prog-fill pf-gold" id="pfRaas" style="width:10%"></div></div>
-          <div class="prog-pct" id="ppRaas">10%</div>
+      <!-- Frank-Starling bar -->
+      <div class="fs-bar-wrap" style="width:100%">
+        <div class="fs-bar-lbl">
+          <span>شد العضلة — Frank-Starling</span>
+          <span id="fsVal" style="color:var(--yellow);font-family:'JetBrains Mono',monospace">50%</span>
         </div>
-        <div class="prog-row">
-          <div class="prog-lbl">تضيق وعائي</div>
-          <div class="prog-bar"><div class="prog-fill pf-red" id="pfVaso" style="width:5%"></div></div>
-          <div class="prog-pct" id="ppVaso">5%</div>
-        </div>
-        <div class="prog-row">
-          <div class="prog-lbl">امتصاص Na⁺</div>
-          <div class="prog-bar"><div class="prog-fill pf-teal" id="pfNa" style="width:50%"></div></div>
-          <div class="prog-pct" id="ppNa">50%</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ADH panel -->
-    <div class="panel">
-      <div class="panel-title pt-blue">هرمون ADH — منع إدرار البول</div>
-
-      <div class="sldr-block" style="margin-bottom:4px">
-        <div class="sldr-hdr">
-          <div><div class="sldr-name">نشاط ADH</div><div class="sldr-sub">Arginine Vasopressin · القنوات الجامعة</div></div>
-          <div class="sldr-badge sb-blue" id="adhVLive">0</div>
-        </div>
-        <div style="font-size:.72rem;color:var(--text-mid);margin-top:6px;line-height:1.6;">
-          يُنشِّط ADH قنوات الماء (Aquaporin-2) في القنوات الجامعة، مُقلِّلاً إنتاج البول وزيادة تركيزه.
-        </div>
-      </div>
-
-      <div class="adh-effect-row">
-        <div class="adh-cell">
-          <div class="adh-cell-lbl">نفاذية الماء</div>
-          <div class="adh-cell-val" id="waterPerm" style="color:var(--c-blue);">منخفضة</div>
-        </div>
-        <div class="adh-cell">
-          <div class="adh-cell-lbl">Aquaporin-2</div>
-          <div class="adh-cell-val" id="aquaVal" style="color:var(--c-cyan);">غير نشط</div>
-        </div>
-        <div class="adh-cell">
-          <div class="adh-cell-lbl">تركيز البول</div>
-          <div class="adh-cell-val" id="urineConc" style="color:var(--c-purple);">300 mOsm</div>
-        </div>
-        <div class="adh-cell">
-          <div class="adh-cell-lbl">إعادة امتصاص H₂O</div>
-          <div class="adh-cell-val" id="waterReab" style="color:var(--c-teal);">19%</div>
-        </div>
-      </div>
-
-      <div class="prog-wrap">
-        <div class="prog-row">
-          <div class="prog-lbl">نشاط ADH</div>
-          <div class="prog-bar"><div class="prog-fill pf-blue" id="pfAdh" style="width:5%"></div></div>
-          <div class="prog-pct" id="ppAdh">5%</div>
-        </div>
-        <div class="prog-row">
-          <div class="prog-lbl">إعادة امتصاص</div>
-          <div class="prog-bar"><div class="prog-fill pf-purple" id="pfReab" style="width:99%"></div></div>
-          <div class="prog-pct" id="ppReab">99%</div>
-        </div>
+        <div class="fs-track"><div class="fs-fill" id="fsFill" style="width:50%"></div></div>
       </div>
     </div>
 
-    <!-- AI Insight -->
-    <div class="panel insight-panel">
-      <div class="panel-title pt-purple">التحليل الفسيولوجي</div>
-      <div class="insight-body" id="insightBody">
-        الحالة الطبيعية: توازن تام. <strong>SA Node</strong> يعمل بـ<span class="hl-c">75 ضربة/د</span>، و<strong>GFR</strong> = <span class="hl-p">120 مل/د</span>. محور RAAS في حالة راحة، وADH يحافظ على التوازن الأسموزي.
+    <!-- NEPHRON PANEL -->
+    <div class="nephron-panel">
+      <canvas id="particleCanvas"></canvas>
+
+      <div class="nph-title">الكليون — Nephron</div>
+
+      <div class="nph-body">
+
+        <!-- Nephron SVG — large, labeled -->
+        <svg width="185" height="310" viewBox="0 0 185 310" style="overflow:visible;position:relative;z-index:3;flex-shrink:0;">
+          <!-- AFFERENT ARTERIOLE -->
+          <path d="M42 26 Q58 16 70 26" fill="none" stroke="rgba(255,23,68,.6)" stroke-width="2.2" stroke-dasharray="4,2.5"/>
+          <text x="16" y="24" font-size="7" fill="rgba(255,23,68,.8)" font-family="Tajawal,sans-serif" font-weight="700">وارد</text>
+          <!-- BOWMAN CAPSULE outer -->
+          <ellipse cx="90" cy="34" rx="28" ry="28" fill="none" stroke="rgba(0,229,255,.48)" stroke-width="2"/>
+          <!-- BOWMAN CAPSULE inner -->
+          <ellipse cx="90" cy="34" rx="17" ry="17" fill="rgba(41,121,255,.13)" stroke="rgba(41,121,255,.42)" stroke-width="1.4"/>
+          <!-- GLOMERULUS -->
+          <circle id="glom" cx="90" cy="34" r="9" fill="rgba(255,23,68,.32)" stroke="rgba(255,23,68,.7)" stroke-width="1.5"/>
+          <!-- Bowman label -->
+          <text x="90" y="8" text-anchor="middle" font-size="7" fill="rgba(0,229,255,.85)" font-family="Tajawal,sans-serif" font-weight="700">محفظة بومان</text>
+          <!-- EFFERENT ARTERIOLE -->
+          <path d="M108 27 Q116 17 130 21" fill="none" stroke="rgba(255,165,2,.55)" stroke-width="2" stroke-dasharray="4,2.5"/>
+          <text x="131" y="21" font-size="7" fill="rgba(255,165,2,.8)" font-family="Tajawal,sans-serif" font-weight="700">صادر</text>
+          <!-- PCT -->
+          <path d="M90 62 C90 77 116 81 116 95 C116 109 66 113 66 127 C66 139 90 142 90 154" fill="none" stroke="rgba(0,229,255,.75)" stroke-width="2.8" stroke-linecap="round"/>
+          <text x="120" y="100" font-size="7" fill="rgba(0,229,255,.75)" font-family="Tajawal,sans-serif" font-weight="700">PCT</text>
+          <!-- HENLE DESCENDING -->
+          <path d="M90 154 C90 171 65 175 59 191 C53 207 59 219 70 222" fill="none" stroke="rgba(41,121,255,.68)" stroke-width="2.4" stroke-linecap="round"/>
+          <text x="30" y="191" font-size="7" fill="rgba(41,121,255,.8)" font-family="Tajawal,sans-serif" font-weight="700">هنلي ↓</text>
+          <!-- HENLE ASCENDING -->
+          <path d="M70 222 C82 225 104 219 110 202 C116 185 111 173 111 158" fill="none" stroke="rgba(0,191,165,.7)" stroke-width="2.4" stroke-linecap="round"/>
+          <text x="116" y="194" font-size="7" fill="rgba(0,191,165,.8)" font-family="Tajawal,sans-serif" font-weight="700">هنلي ↑</text>
+          <!-- DCT -->
+          <path d="M111 158 C111 143 88 136 88 122 C88 110 116 107 116 95" fill="none" stroke="rgba(101,31,255,.68)" stroke-width="2.2" stroke-linecap="round"/>
+          <text x="72" y="122" font-size="7" fill="rgba(101,31,255,.8)" font-family="Tajawal,sans-serif" font-weight="700">DCT</text>
+          <!-- COLLECTING DUCT -->
+          <path d="M116 95 L133 95 L133 302" fill="none" stroke="rgba(101,31,255,.6)" stroke-width="2.4" stroke-linecap="round"/>
+          <!-- ADH effect overlay -->
+          <rect id="adhRect" x="126" y="95" width="16" height="207" rx="5"
+            fill="rgba(41,121,255,.04)" stroke="rgba(0,229,255,.15)" stroke-width="1" stroke-dasharray="3,2"/>
+          <text x="145" y="175" font-size="6.5" fill="rgba(41,121,255,.6)" font-family="Tajawal,sans-serif">ADH</text>
+          <text x="145" y="185" font-size="6.5" fill="rgba(41,121,255,.6)" font-family="Tajawal,sans-serif">AQP-2</text>
+          <text x="133" y="307" text-anchor="middle" font-size="7.5" fill="rgba(0,230,118,.85)" font-family="Tajawal,sans-serif" font-weight="700">بول ↓</text>
+          <!-- Aldosterone tag on DCT -->
+          <text id="aldoTag" x="48" y="132" font-size="6.5" fill="rgba(255,234,0,0)" font-family="Tajawal,sans-serif" font-weight="700">Aldo: Na⁺↑</text>
+          <!-- K+ warning -->
+          <text id="kWarnTxt" x="38" y="222" font-size="8" fill="rgba(255,23,68,0)" font-family="Tajawal,sans-serif" font-weight="900">⚡K⁺ خطر</text>
+          <!-- Collecting duct label -->
+          <text x="148" y="155" font-size="7" fill="rgba(101,31,255,.7)" font-family="Tajawal,sans-serif">قناة</text>
+          <text x="148" y="165" font-size="7" fill="rgba(101,31,255,.7)" font-family="Tajawal,sans-serif">جامعة</text>
+        </svg>
+
+        <!-- Nephron stats panel -->
+        <div class="nph-stats">
+          <div class="ns">
+            <div class="ns-l">GFR</div>
+            <div class="ns-v" id="npGFR" style="color:var(--purple)">120</div>
+            <div style="font-size:.55rem;color:var(--t2);">mL/min</div>
+          </div>
+          <div class="ns">
+            <div class="ns-l">إعادة امتصاص</div>
+            <div class="ns-v" id="npReab" style="color:var(--teal)">99.0%</div>
+            <div style="font-size:.55rem;color:var(--t2);">من الراشح</div>
+          </div>
+          <div class="ns">
+            <div class="ns-l">تركيز البول</div>
+            <div class="ns-v" id="npOsm" style="color:var(--purple)">300 mOsm</div>
+            <div style="font-size:.55rem;color:var(--t2);">Osmolality</div>
+          </div>
+          <div class="ns">
+            <div class="ns-l">AQP-2</div>
+            <div class="ns-v" id="npAQP" style="color:var(--t2)">غير نشط</div>
+            <div style="font-size:.55rem;color:var(--t2);">Aquaporin-2</div>
+          </div>
+          <div class="ns">
+            <div class="ns-l">البول</div>
+            <div class="ns-v" id="npUrine" style="color:var(--green)">1.0</div>
+            <div style="font-size:.55rem;color:var(--t2);">mL/min</div>
+          </div>
+        </div>
+
+      </div><!-- /nph-body -->
+
+      <div class="nph-leg">
+        <div class="vl"><div class="vl-d" style="background:var(--cyan)"></div>ترشيح</div>
+        <div class="vl"><div class="vl-d" style="background:var(--teal)"></div>إعادة امتصاص</div>
+        <div class="vl"><div class="vl-d" style="background:var(--yellow)"></div>بول</div>
+        <div class="vl"><div class="vl-d" style="background:var(--red)"></div>دم</div>
       </div>
-      <div class="mech-flow" id="mechFlow">
-        <span class="mf-step mf-n">راحة</span>
-        <span class="mf-arrow">←</span>
-        <span class="mf-step mf-c">SA Node طبيعي</span>
-        <span class="mf-arrow">←</span>
-        <span class="mf-step mf-p">GFR: 120</span>
-        <span class="mf-arrow">←</span>
-        <span class="mf-step mf-g">بول: 1 مل/د</span>
-      </div>
-    </div>
+
+    </div><!-- /nephron-panel -->
+
   </div>
+  </div><!-- /col-vis -->
 
-</div><!-- /.layout -->
-</div><!-- /.wrap -->
+</div><!-- /root -->
 
 <script>
 // ════════════════════════════════════
-//  STATE
+//  STATE — full v4 science preserved
 // ════════════════════════════════════
-const S = { adr:0, ach:0, renin:0, adh:0, fluid:0 };
-const BASE = { bpm:75, sys:120, dia:80, urine:1.0, gfr:120, reab:99 };
+const S={adr:0,ach:0,o2:98,co2:40,ph:7.40,thy:5,temp:37,vol:5.0,fluid:0,renin:0,adh:0,na:140,k:4.0,
+  drugs:{ace:false,dig:false,fur:false,beta:false}};
+const BASE={hr:75,sys:120,dia:80,gfr:120,urine:1.0,na:140,k:4.0,sv:70,co:5.25};
+let activityLevel=1, alertDismissed=false;
+const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 
 // ════════════════════════════════════
-//  CHART SETUP
+//  PHYSIOLOGY ENGINE — identical to v4
 // ════════════════════════════════════
-const N = 45;
-const chartLabels = Array(N).fill('');
-const dBpm    = Array(N).fill(BASE.bpm);
-const dSys    = Array(N).fill(BASE.sys);
-const dGfr    = Array(N).fill(BASE.gfr);
+function calcPhysio(){
+  const{adr,ach,o2,co2,ph,thy,temp,vol,fluid,renin,adh,na,k,drugs}=S;
+  const hypoxia=clamp((98-o2)/28,0,1);
+  const hypercarb=clamp((co2-40)/40,0,1);
+  const acidosis=clamp((7.40-ph)/0.6,0,1);
+  const gasStress=hypoxia*1.2+hypercarb*0.8+acidosis*0.5;
+  const thyEffect=(thy-5)/5;
+  const bmr=Math.round(1700+thyEffect*800);
+  const thyHR=thyEffect*20,thyBP=thyEffect*10;
+  const tempEffect=(temp-37)*10;
+  const sweat=temp>38.5?'شديد':temp>37.5?'معتدل':'طبيعي';
+  const sweatFluidLoss=temp>38.5?2:temp>37.5?0.8:0;
+  const actMod=activityLevel;
+  const actHR=(actMod-1)*25;
+  const sym=adr-ach*0.55;
+  const volFactor=(vol-5.0)/3.0;
+  const edv=clamp(120+volFactor*80+fluid*15,50,350);
+  let sv=edv<=200?40+(edv-50)*0.5:140-(edv-200)*0.6;
+  sv=clamp(sv,15,150);
+  if(drugs.dig)sv=Math.min(sv*1.25,150);
+  let hr=BASE.hr+sym*8+gasStress*18+thyHR+tempEffect+actHR;
+  const kDev=k-4.0;
+  if(kDev<-1)hr+=(-kDev-1)*12;
+  if(kDev>1)hr-=(kDev-1)*18;
+  if(drugs.beta)hr*=0.7;
+  if(drugs.dig)hr*=0.85;
+  hr+=adh*1.5;hr=clamp(hr,25,195);
+  const co=(hr*sv)/1000;
+  let raasAuto=0;
+  const bpEst=80+sym*8;
+  raasAuto+=renin/10+clamp((5.0-vol)/5,0,0.5)+adr*0.04+clamp((80-bpEst)/80,0,0.3);
+  if(drugs.ace)raasAuto*=0.25;
+  raasAuto=clamp(raasAuto,0,1);
+  const angioII=raasAuto,aldoLvl=raasAuto*0.9;
+  let sys=BASE.sys+sym*8.5-ach*4+volFactor*18+fluid*14+angioII*40+thyBP+tempEffect*0.5;
+  sys+=na>145?(na-145)*1.5:0;sys+=k<3.0?(3.0-k)*3:0;
+  sys-=actMod>3?(actMod-3)*4:0;sys+=gasStress*12;
+  if(drugs.ace)sys-=20;if(drugs.beta)sys-=15;
+  sys=clamp(sys,55,240);
+  let dia=BASE.dia+sym*4-ach*2+volFactor*10+fluid*8+angioII*20+thyBP*0.5;
+  if(drugs.ace)dia-=12;if(drugs.beta)dia-=10;dia=clamp(dia,30,140);
+  let gfr=BASE.gfr+(sys-BASE.sys)*0.4+volFactor*20+fluid*10;
+  if(adr>5)gfr-=(adr-5)*8;if(angioII>0.5)gfr-=(angioII-0.5)*25;
+  if(drugs.ace)gfr+=10;if(drugs.fur)gfr+=8;if(k>6)gfr-=(k-6)*8;
+  gfr=clamp(gfr,5,220);
+  const adhEffect=adh/10;
+  const urineOsm=clamp(300+adhEffect*900+aldoLvl*200,50,1400);
+  const reab=clamp(99+adhEffect*0.88+aldoLvl*0.6,96,99.95);
+  let urine=(gfr/BASE.gfr)*1.0*(1-adhEffect*0.85-aldoLvl*0.4);
+  if(drugs.fur)urine+=3.5;urine+=sweatFluidLoss*0.3;urine=clamp(urine,0.05,12);
+  let naCalc=na+aldoLvl*8+adhEffect*5;if(drugs.fur)naCalc-=6;naCalc=clamp(naCalc,na-5,na+12);
+  let kCalc=k-aldoLvl*0.8+acidosis*1.5;if(drugs.fur)kCalc-=0.8;kCalc=clamp(kCalc,1.0,9.0);
+  let kCard='طبيعي';
+  if(kCalc>6.5)kCard='⚡ خطر توقف القلب';
+  else if(kCalc>5.5)kCard='↓ نبض + خطر';
+  else if(kCalc>5.0)kCard='فرط بوتاسيوم خفيف';
+  else if(kCalc<2.5)kCard='⚡ رجفان محتمل';
+  else if(kCalc<3.0)kCard='↑ نبض + ضعف عضلي';
+  else if(kCalc<3.5)kCard='نقص بوتاسيوم خفيف';
+  let acidStatus='طبيعي';
+  if(ph<7.35)acidStatus=co2>45?'حماض تنفسي':'حماض استقلابي';
+  else if(ph>7.45)acidStatus=co2<35?'قلاء تنفسي':'قلاء استقلابي';
+  const lvl=['منخفض','متوسط','مرتفع'];
+  const ri=raasAuto<0.25?0:raasAuto<0.6?1:2;
+  const autoRenin=sys<90||vol<3.5;
+  const devArr=[Math.abs(hr-75)/75,Math.abs(sys-120)/120,Math.abs(gfr-120)/120,
+    Math.abs(urine-1)/1,Math.abs(naCalc-140)/20,Math.abs(kCalc-4)/2];
+  const maxDev=Math.max(...devArr);
+  const hState=maxDev>0.5?'fail':maxDev>0.25?'comp':'ok';
+  return{hr,sv,co,sys,dia,gfr,urine,naCalc,kCalc,edv,reab,urineOsm,adhEffect,aldoLvl,
+    raasAuto,angioII,acidStatus,kCard,autoRenin,hState,lvl,ri,bmr,sweat,gasStress,
+    raasPct:Math.round(raasAuto*100),adhPct:Math.round(adhEffect*100),
+    symPct:Math.round(clamp(adr*10,0,100)),fsPct:Math.round(clamp((edv/200)*100,0,100))};
+}
 
-const ctx = document.getElementById('vChart').getContext('2d');
-const vChart = new Chart(ctx, {
+// ════════════════════════════════════
+//  CHARTS — Chart.js
+// ════════════════════════════════════
+const N=50;
+const mkA=(v)=>Array(N).fill(v);
+const cOpts={
+  responsive:true,maintainAspectRatio:false,animation:{duration:150},
+  plugins:{
+    legend:{display:false},
+    tooltip:{
+      backgroundColor:'rgba(5,15,30,.95)',borderColor:'rgba(0,229,255,.25)',borderWidth:1,
+      titleColor:'#ecf4ff',bodyColor:'#7bafd4',
+      titleFont:{family:'JetBrains Mono',size:11},
+      bodyFont:{family:'JetBrains Mono',size:11}
+    }
+  },
+  scales:{
+    x:{display:false},
+    y:{
+      grid:{color:'rgba(41,121,255,.06)'},
+      ticks:{color:'rgba(100,160,220,.55)',font:{family:'JetBrains Mono',size:9}},
+      border:{display:false}
+    }
+  }
+};
+
+const d1={bpm:mkA(75),sys:mkA(120),co:mkA(52)};
+const ch1=new Chart(document.getElementById('ch1').getContext('2d'),{
   type:'line',
   data:{
-    labels:chartLabels,
+    labels:Array(N).fill(''),
     datasets:[
-      { label:'BPM', data:dBpm, borderColor:'rgba(255,71,87,.85)', backgroundColor:'rgba(255,71,87,.04)',
-        borderWidth:1.8, pointRadius:0, tension:.4, fill:true, yAxisID:'yL' },
-      { label:'Systolic', data:dSys, borderColor:'rgba(0,229,255,.75)', backgroundColor:'rgba(0,229,255,.03)',
-        borderWidth:1.8, pointRadius:0, tension:.4, fill:true, yAxisID:'yR' },
-      { label:'GFR', data:dGfr, borderColor:'rgba(165,94,234,.7)', backgroundColor:'rgba(165,94,234,.03)',
-        borderWidth:1.8, pointRadius:0, tension:.4, fill:true, yAxisID:'yR' }
+      {label:'BPM',data:d1.bpm,borderColor:'rgba(255,23,68,.9)',backgroundColor:'rgba(255,23,68,.06)',
+        borderWidth:2,pointRadius:0,tension:.4,fill:true},
+      {label:'Systolic',data:d1.sys,borderColor:'rgba(0,229,255,.82)',backgroundColor:'rgba(0,229,255,.05)',
+        borderWidth:2,pointRadius:0,tension:.4,fill:true},
+      {label:'CO×10',data:d1.co,borderColor:'rgba(0,230,118,.72)',backgroundColor:'rgba(0,230,118,.04)',
+        borderWidth:2,pointRadius:0,tension:.4,fill:true}
     ]
   },
-  options:{
-    responsive:true, maintainAspectRatio:false,
-    animation:{duration:180},
-    plugins:{legend:{display:false}, tooltip:{
-      backgroundColor:'rgba(6,18,35,.92)',
-      borderColor:'rgba(0,229,255,.2)', borderWidth:1,
-      titleColor:'#e8f4ff', bodyColor:'#7fb3d3',
-      titleFont:{family:'JetBrains Mono'}, bodyFont:{family:'JetBrains Mono'}
-    }},
-    scales:{
-      x:{display:false},
-      yL:{ min:30, max:200, position:'right',
-        grid:{color:'rgba(0,229,255,.04)'},
-        ticks:{color:'rgba(255,71,87,.5)', font:{family:'JetBrains Mono',size:9}, stepSize:30},
-        border:{display:false} },
-      yR:{ min:40, max:250, position:'left',
-        grid:{display:false},
-        ticks:{color:'rgba(0,229,255,.4)', font:{family:'JetBrains Mono',size:9}, stepSize:40},
-        border:{display:false} }
-    }
-  }
+  options:{...cOpts,scales:{x:{display:false},y:{min:0,max:260,...cOpts.scales.y}}}
 });
 
-// ════════════════════════════════════
-//  PHYSIOLOGY ENGINE
-// ════════════════════════════════════
-function calcPhysio() {
-  const { adr, ach, renin, adh, fluid } = S;
-  const sym = adr - ach*0.55;
+const d2={gfr:mkA(120),ur:mkA(20),na:mkA(119),kk:mkA(100)};
+const ch2=new Chart(document.getElementById('ch2').getContext('2d'),{
+  type:'line',
+  data:{
+    labels:Array(N).fill(''),
+    datasets:[
+      {label:'GFR',data:d2.gfr,borderColor:'rgba(213,0,249,.78)',backgroundColor:'rgba(213,0,249,.04)',
+        borderWidth:2,pointRadius:0,tension:.4,fill:true},
+      {label:'Urine×20',data:d2.ur,borderColor:'rgba(0,191,165,.75)',backgroundColor:'rgba(0,191,165,.04)',
+        borderWidth:2,pointRadius:0,tension:.4,fill:true},
+      {label:'Na×.85',data:d2.na,borderColor:'rgba(255,109,0,.72)',backgroundColor:'rgba(255,109,0,.04)',
+        borderWidth:2,pointRadius:0,tension:.4,fill:true},
+      {label:'K×25',data:d2.kk,borderColor:'rgba(255,234,0,.68)',backgroundColor:'rgba(255,234,0,.04)',
+        borderWidth:2,pointRadius:0,tension:.4,fill:true}
+    ]
+  },
+  options:{...cOpts,scales:{x:{display:false},y:{min:0,max:260,...cOpts.scales.y}}}
+});
 
-  // ── BPM
-  let bpm = BASE.bpm + sym*8.5 - ach*3 + fluid*4 + renin*1.5;
-  bpm = clamp(bpm, 30, 175);
-
-  // ── Blood Pressure
-  // Adrenaline → α1 vasoconstriction + β1 ↑CO
-  // RAAS: angiotensin II → vasoconstriction; aldosterone → Na/H2O retention → ↑BP
-  let sys = BASE.sys + adr*8 - ach*4 + fluid*13 + renin*5;
-  let dia = BASE.dia + adr*4 - ach*2 + fluid*7  + renin*3;
-  sys = clamp(sys, 60, 230);
-  dia = clamp(dia, 35, 140);
-
-  // ── RAAS activation
-  // Renin slider + auto-activation if BP < 90 + adrenaline
-  let raasRaw = renin/10 + adr*0.04 + Math.max(0,(90-sys)/120);
-  if(fluid>0) raasRaw -= fluid*0.04;
-  raasRaw = clamp(raasRaw, 0, 1);
-
-  // ── GFR
-  // Moderate BP rise → ↑GFR; high adr → renal vasoconstriction → ↓GFR
-  // RAAS: angiotensin II → efferent constriction → ↑GFR at low dose, ↓ at high
-  let gfr = BASE.gfr;
-  gfr += (sys - BASE.sys)*0.35 - (adr>5?(adr-5)*5:0) + fluid*9 - ach*5;
-  gfr -= renin>5?(renin-5)*4:0;  // high renin → strong efferent constriction → ↓GFR eventually
-  gfr = clamp(gfr, 8, 210);
-
-  // ── ADH + Aldosterone → Reabsorption
-  // Base reab 99%. ADH ↑ water reab in collecting duct. Aldosterone ↑ Na⁺ (and water follows).
-  const adhEffect  = adh/10 * 0.6;   // 0-60% additional H2O reab
-  const aldoEffect = raasRaw * 0.25;  // 0-25% additional Na/H2O reab
-  let reab = 99 + adhEffect*0.9 + aldoEffect*0.8;
-  reab = clamp(reab, 97, 99.9);
-
-  // ── Urine output
-  // urine = GFR * (1-reab/100)
-  const reabFrac = reab / 100;
-  let urine = (gfr / BASE.gfr) * BASE.urine * (1 - reabFrac + 0.99);
-  // Simplify: base urine modulated
-  urine = (gfr / BASE.gfr) * 1.0 * (1 + adhEffect*-1.4 + aldoEffect*-1.2) + fluid*0.35;
-  urine = clamp(urine, 0.05, 8);
-
-  // ── Urine concentration (ADH effect)
-  const urineOsm = 300 + adh * 90; // up to ~1200 mOsm
-
-  // ── Water permeability (ADH opens AQP-2)
-  const waterPerm = adh > 0 ? (adh < 3 ? 'منخفضة' : adh < 7 ? 'متوسطة' : 'عالية جداً') : 'منخفضة';
-  const aquaStatus = adh > 2 ? 'نشط' : 'غير نشط';
-
-  // ── RAAS nodes text
-  const rl = ['منخفض','متوسط','مرتفع'];
-  const raasIdx = raasRaw < 0.25 ? 0 : raasRaw < 0.6 ? 1 : 2;
-  const reninTxt  = rl[raasIdx];
-  const angioTxt  = rl[Math.min(2,raasIdx)];
-  const aldoTxt   = rl[Math.min(2,raasIdx)];
-
-  // ── Na reabsorption % (for progress)
-  const naReab = clamp(50 + raasRaw*50, 50, 99);
-
-  // ── Auto-renin trigger
-  const autoRenin = sys < 90;
-
-  return { bpm, sys, dia, gfr, urine, reab, raasRaw, urineOsm,
-           waterPerm, aquaStatus, reninTxt, angioTxt, aldoTxt, naReab, autoRenin };
-}
-
-function clamp(v,lo,hi){ return Math.min(hi, Math.max(lo, v)); }
-
-// ════════════════════════════════════
-//  UPDATE UI
-// ════════════════════════════════════
-function updateUI() {
-  const p = calcPhysio();
-  const { adr, ach, renin, adh, fluid } = S;
-
-  // BPM
-  document.getElementById('bpmBig').textContent = Math.round(p.bpm);
-  document.getElementById('visHR').textContent  = Math.round(p.bpm) + ' BPM';
-
-  // Heart beat speed
-  const dur = clamp(1.3 - (p.bpm-60)/120, 0.28, 1.3);
-  document.getElementById('heartSvg').style.animationDuration = dur+'s';
-  document.querySelectorAll('.heart-ring').forEach(r => r.style.animationDuration = dur+'s');
-
-  // BP
-  const bpEl = document.getElementById('bpVal');
-  bpEl.innerHTML = `${Math.round(p.sys)}<span style="font-size:1rem">/</span>${Math.round(p.dia)}`;
-  bpEl.style.color = p.sys>180?'var(--c-red)': p.sys>140?'var(--c-gold)': p.sys<90?'var(--c-purple)':'var(--c-cyan)';
-  setDelta('bpDelta', p.sys, BASE.sys, '');
-
-  // Urine
-  const urEl = document.getElementById('urineVal');
-  urEl.textContent = p.urine.toFixed(1);
-  urEl.style.color = p.urine<0.4?'var(--c-red)': p.urine>3?'var(--c-cyan)':'var(--c-teal)';
-  setDelta('urineDelta', p.urine, BASE.urine, '');
-
-  // GFR
-  const gfrEl = document.getElementById('gfrVal');
-  gfrEl.textContent = Math.round(p.gfr);
-  gfrEl.style.color = p.gfr<60?'var(--c-red)': p.gfr>160?'var(--c-cyan)':'var(--c-purple)';
-  setDelta('gfrDelta', p.gfr, BASE.gfr, '');
-
-  // Reab
-  const reabEl = document.getElementById('reabVal');
-  reabEl.textContent = p.reab.toFixed(1);
-  reabEl.style.color = p.reab<98?'var(--c-red)':'var(--c-gold)';
-  setDelta('reabDelta', p.reab, BASE.reab, '');
-
-  // RAAS chain
-  const raasP = Math.round(p.raasRaw*100);
-  const vasoP = Math.round(p.raasRaw*60 + adr*4);
-  const naP   = Math.round(p.naReab);
-  setPBar('pfRaas','ppRaas', raasP);
-  setPBar('pfVaso','ppVaso', Math.min(99,vasoP));
-  setPBar('pfNa','ppNa', naP);
-
-  ['rn0','rn1','rn2'].forEach(id => document.getElementById(id).classList.toggle('active', p.raasRaw>0.2));
-  document.getElementById('rnV0').textContent = p.reninTxt;
-  document.getElementById('rnV1').textContent = p.angioTxt;
-  document.getElementById('rnV2').textContent = p.aldoTxt;
-  ['rnV0','rnV1','rnV2'].forEach(id => {
-    const v = document.getElementById(id).textContent;
-    document.getElementById(id).style.color = v==='مرتفع'?'var(--c-red)': v==='متوسط'?'var(--c-gold)':'var(--c-teal)';
-  });
-
-  // ADH panel
-  document.getElementById('adhVLive').textContent = adh;
-  const adhP = Math.round(adh/10*100);
-  const reabP = Math.round(p.reab);
-  setPBar('pfAdh','ppAdh', adhP);
-  setPBar('pfReab','ppReab', reabP);
-  document.getElementById('waterPerm').textContent = p.waterPerm;
-  document.getElementById('waterPerm').style.color = adh>5?'var(--c-cyan)': adh>2?'var(--c-blue)':'var(--c-purple)';
-  document.getElementById('aquaVal').textContent = p.aquaStatus;
-  document.getElementById('aquaVal').style.color = adh>2?'var(--c-cyan)':'var(--text-dim)';
-  document.getElementById('urineConc').textContent = Math.round(p.urineOsm)+' mOsm';
-  document.getElementById('urineConc').style.color = p.urineOsm>800?'var(--c-red)': p.urineOsm>500?'var(--c-gold)':'var(--c-purple)';
-  document.getElementById('waterReab').textContent = Math.round(19 + adh*4)+'%';
-
-  // ADH indicator on nephron
-  const adhOpacity = 0.05 + adh/10*0.4;
-  document.getElementById('adhIndicator').setAttribute('fill',`rgba(30,144,255,${adhOpacity})`);
-  document.getElementById('adhIndicator').setAttribute('stroke',`rgba(0,229,255,${adhOpacity*2})`);
-
-  // Renin alert
-  const ra = document.getElementById('reninAlert');
-  ra.classList.toggle('show', p.autoRenin);
-
-  // General alerts
-  const ab = document.getElementById('alertBox');
-  ab.className = 'alert-box';
-  if(p.sys>195)       { ab.className='alert-box alert-danger'; ab.innerHTML='⚠️ أزمة ارتفاع ضغط الدم — Hypertensive Crisis'; }
-  else if(p.bpm>145)  { ab.className='alert-box alert-warn';   ab.innerHTML='⚡ تسارع القلب — Tachycardia'; }
-  else if(p.bpm<42)   { ab.className='alert-box alert-warn';   ab.innerHTML='🩺 بطء القلب — Bradycardia'; }
-  else if(p.urine<0.3){ ab.className='alert-box alert-danger'; ab.innerHTML='🔴 قُلة بول شديدة — Oliguria <0.5 ml/d'; }
-  else if(p.gfr<30)   { ab.className='alert-box alert-danger'; ab.innerHTML='🫘 فشل كلوي محتمل — GFR Critical'; }
-
-  // Chart push
-  dBpm.shift(); dBpm.push(p.bpm + rnd(2));
-  dSys.shift(); dSys.push(p.sys + rnd(2));
-  dGfr.shift(); dGfr.push(p.gfr + rnd(1.5));
-  vChart.update('none');
-
-  // Insight
-  updateInsight(p);
-
-  // Particles
-  particleState.urine  = p.urine;
-  particleState.reab   = p.reab;
-  particleState.adh    = adh;
-  particleState.raas   = p.raasRaw;
-}
-
-function setDelta(id, cur, base, unit) {
-  const el = document.getElementById(id);
-  const d = cur - base;
-  if(Math.abs(d)<0.4){ el.className='mon-delta delta-eq'; el.textContent='—'; return; }
-  if(d>0){ el.className='mon-delta delta-up'; el.textContent='+'+d.toFixed(1)+unit; }
-  else    { el.className='mon-delta delta-dn'; el.textContent= d.toFixed(1)+unit; }
-}
-
-function setPBar(fillId, pctId, val) {
-  val = clamp(val,0,100);
-  document.getElementById(fillId).style.width = val+'%';
-  document.getElementById(pctId).textContent = val+'%';
-}
-
-function rnd(r){ return (Math.random()-.5)*r*2; }
-
-// ════════════════════════════════════
-//  INSIGHT ENGINE
-// ════════════════════════════════════
-function updateInsight(p) {
-  const { adr, ach, renin, adh, fluid } = S;
-  const ib = document.getElementById('insightBody');
-  const mf = document.getElementById('mechFlow');
-
-  if(!adr && !ach && !renin && !adh && !fluid) {
-    ib.innerHTML = `حالة الراحة الفسيولوجية. <strong>SA Node</strong> يعمل بـ<span class="hl-c">75 BPM</span>. <strong>GFR = <span class="hl-p">120 مل/د</span></strong>. محور RAAS في حالة راحة، وADH يحافظ على الأسمولية الطبيعية <span class="hl-t">300 mOsm</span>.`;
-    mf.innerHTML = `<span class="mf-step mf-n">راحة</span><span class="mf-arrow">←</span><span class="mf-step mf-c">SA: 75 BPM</span><span class="mf-arrow">←</span><span class="mf-step mf-p">GFR: 120</span><span class="mf-arrow">←</span><span class="mf-step mf-g">بول: 1 مل/د</span>`;
-    return;
-  }
-
-  let txt='', flow='';
-
-  if(adr > ach && adr > 0) {
-    if(adr>=7){
-      txt = `<strong>جرعة عالية من الأدرينالين:</strong> ارتباط قوي بـ<span class="hl-r">مستقبلات β1</span> في العقدة الجيبية → ↑ BPM و↑ انقباضية. <strong>مستقبلات α1</strong> تُسبب <span class="hl-r">تضيقاً وعائياً كلوياً</span> يُقلِّل GFR رغم ارتفاع الضغط. الخلايا قرب الكبيبية <span class="hl-gl">(JG cells)</span> تُفعِّل إفراز رينين.`;
-      flow = `<span class="mf-step mf-r">أدرينالين ↑↑</span><span class="mf-arrow">←</span><span class="mf-step mf-r">β1: ↑BPM</span><span class="mf-arrow">←</span><span class="mf-step mf-r">α1: تضيق كلوي</span><span class="mf-arrow">←</span><span class="mf-step mf-gl">RAAS ↑</span><span class="mf-arrow">←</span><span class="mf-step mf-r">↓ GFR</span>`;
-    } else {
-      txt = `<strong>تنشيط الجهاز الودي:</strong> الأدرينالين يرتبط بـ<span class="hl-r">β1</span> في SA Node مُسرِّعاً إزالة الاستقطاب التدريجية. <span class="hl-gl">α1</span> يُسبب تضيقاً وعائياً رافعاً الضغط. RAAS يبدأ بالتنشيط تدريجياً، مما يُقلِّل البول.`;
-      flow = `<span class="mf-step mf-r">أدرينالين</span><span class="mf-arrow">←</span><span class="mf-step mf-r">β1: ↑BPM + ↑BP</span><span class="mf-arrow">←</span><span class="mf-step mf-gl">RAAS يبدأ</span><span class="mf-arrow">←</span><span class="mf-step mf-g">↓ بول خفيف</span>`;
-    }
-  }
-  else if(ach > adr && ach > 0) {
-    txt = `<strong>تنشيط نظير الودي:</strong> الأستيل كولين يرتبط بـ<span class="hl-c">مستقبلات M2</span> مُفتحاً قنوات K⁺ (I<sub>K</sub>) ومُبطِّئاً <span class="hl-c">إزالة الاستقطاب التدريجية</span> في SA Node. يُطيل فترة جموح العقدة الأذينية البطينية (AV Node). انخفاض الضغط قد يُطلق تنشيطاً تعويضياً لـ<span class="hl-gl">RAAS</span>.`;
-    flow = `<span class="mf-step mf-c">أستيل كولين</span><span class="mf-arrow">←</span><span class="mf-step mf-c">M2: ↑K⁺</span><span class="mf-arrow">←</span><span class="mf-step mf-c">↓ BPM + ↓ BP</span><span class="mf-arrow">←</span><span class="mf-step mf-gl">RAAS تعويضي</span>`;
-  }
-  else if(renin > 0) {
-    txt = `<strong>تنشيط RAAS:</strong> الرينين يحوِّل أنجيوتنسينوجين إلى <span class="hl-gl">أنجيوتنسين I</span>، ثم يتحول بفعل ACE في الرئتين إلى <span class="hl-r">أنجيوتنسين II</span> (مُضيِّق للأوعية). يحفِّز أنجيوتنسين II قشرة الكظرية على إفراز <span class="hl-gl">ألدوستيرون</span> الذي يزيد إعادة امتصاص Na⁺ وH₂O في الأنيبيبة البعيدة والقناة الجامعة.`;
-    flow = `<span class="mf-step mf-gl">رينين ↑</span><span class="mf-arrow">←</span><span class="mf-step mf-gl">أنجيوتنسين II</span><span class="mf-arrow">←</span><span class="mf-step mf-r">تضيق وعائي</span><span class="mf-arrow">←</span><span class="mf-step mf-gl">ألدوستيرون</span><span class="mf-arrow">←</span><span class="mf-step mf-t">↑ Na⁺ امتصاص</span>`;
-  }
-  else if(adh > 0) {
-    txt = `<strong>هرمون ADH (فاسوبريسين):</strong> يُنتَج في <span class="hl-c">تحت المهاد</span> ويُفرز من النخامية الخلفية. يُنشِّط <span class="hl-c">Aquaporin-2 (AQP-2)</span> في الغشاء التجويفي للقنوات الجامعة، مما يُزيد نفاذية الماء. الراشح الذي تركيزه ~100 mOsm يُركَّز حتى <span class="hl-p">${Math.round(p.urineOsm)} mOsm</span>، ويُقلِّل حجم البول.`;
-    flow = `<span class="mf-step mf-c">ADH ↑</span><span class="mf-arrow">←</span><span class="mf-step mf-c">AQP-2 نشط</span><span class="mf-arrow">←</span><span class="mf-step mf-p">نفاذية ماء ↑</span><span class="mf-arrow">←</span><span class="mf-step mf-g">بول مركَّز</span><span class="mf-arrow">←</span><span class="mf-step mf-g">↓ حجم البول</span>`;
-  }
-  else if(fluid > 0) {
-    txt = `<strong>المحلول الوريدي:</strong> يزيد حجم الدم وبالتالي <span class="hl-gl">العائد الوريدي</span>. وفق <strong>قانون ستارلنغ</strong>: ↑ حجم نهاية الانبساط → ↑ شد العضلة → ↑ حجم الضربة. ارتفاع الضغط الهيدروستاتيكي الكبيبي يزيد <span class="hl-p">GFR</span> ويُثبِّط RAAS، فيزيد البول.`;
-    flow = `<span class="mf-step mf-gl">محلول وريدي</span><span class="mf-arrow">←</span><span class="mf-step mf-gl">↑ EDV</span><span class="mf-arrow">←</span><span class="mf-step mf-gl">ستارلنغ ↑</span><span class="mf-arrow">←</span><span class="mf-step mf-p">↑ GFR</span><span class="mf-arrow">←</span><span class="mf-step mf-g">↑ بول</span>`;
-  }
-  else {
-    txt = `تأثيرات متعددة متداخلة. الناتج الصافي: <span class="hl-r">BPM = ${Math.round(p.bpm)}</span>، ضغط = <span class="hl-c">${Math.round(p.sys)}/${Math.round(p.dia)}</span>، GFR = <span class="hl-p">${Math.round(p.gfr)}</span>.`;
-    flow = `<span class="mf-step mf-n">تأثيرات مركبة</span><span class="mf-arrow">←</span><span class="mf-step mf-r">BPM: ${Math.round(p.bpm)}</span><span class="mf-arrow">←</span><span class="mf-step mf-p">GFR: ${Math.round(p.gfr)}</span>`;
-  }
-
-  ib.innerHTML = txt;
-  mf.innerHTML = flow;
-}
+const rnd=(r)=>(Math.random()-.5)*r*2;
 
 // ════════════════════════════════════
 //  PARTICLE SYSTEM
 // ════════════════════════════════════
-const canvas = document.getElementById('particleCanvas');
-const pctx   = canvas.getContext('2d');
-const particleState = { urine:1, reab:99, adh:0, raas:0 };
+const pcv=document.getElementById('particleCanvas');
+const pctx=pcv.getContext('2d');
+let pSt={urine:1,reab:99};
 
-const particles = [];
-const PCOUNT = 55;
-
-function resizeCanvas(){
-  const va = document.querySelector('.visual-area');
-  canvas.width  = va.clientWidth;
-  canvas.height = va.clientHeight;
+function resizePcv(){
+  const np=document.querySelector('.nephron-panel');
+  if(!np)return;
+  pcv.width=np.clientWidth;pcv.height=np.clientHeight;
 }
 
-class Particle {
-  constructor(){
-    this.reset(true);
-  }
+// Waypoints as fraction of canvas (approximate nephron path)
+const WPT=[
+  {x:.48,y:.11},{x:.52,y:.20},{x:.57,y:.29},{x:.50,y:.37},
+  {x:.40,y:.42},{x:.41,y:.51},{x:.39,y:.59},{x:.38,y:.67},
+  {x:.40,y:.74},{x:.43,y:.82},{x:.46,y:.93}
+];
+
+class Particle{
+  constructor(){this.reset(true);}
   reset(init=false){
-    // All start near glomerulus area (roughly center of nephron position in canvas)
-    const cw = canvas.width, ch = canvas.height;
-    // Nephron center roughly at 60% x, 30% y in the visual area
-    this.x = cw*0.58 + (Math.random()-.5)*20;
-    this.y = ch*0.20 + (Math.random()-.5)*16;
-    this.type = Math.random() < 0.65 ? 'filtrate' : 'blood';
-    this.alpha = 0;
-    this.size  = Math.random()*2.2+1.2;
-    this.life  = 0;
-    // Destination: filtrate → goes down nephron path; blood → returns to side
-    const reabProb = (particleState.reab-97)/2.9; // 0-1
-    this.willReab = Math.random() < reabProb;
-    this.phase = 0; // 0=filtrate flowing, 1=returning or exiting
-    // Path progress
-    this.t = init ? Math.random() : 0;
-    this.speed = 0.003 + Math.random()*0.003;
+    this.t=init?Math.random():0;
+    const rb=clamp((pSt.reab-96)/3.95,0,1);
+    this.willReab=Math.random()<rb;
+    this.type=Math.random()<0.28?'blood':'filtrate';
+    this.speed=0.004+Math.random()*0.004+pSt.urine*0.003;
+    this.size=Math.random()*2.2+1;
+    this.alpha=0;
   }
-
   update(){
-    const speed = this.speed * (1 + particleState.urine*0.15);
-    this.t += speed;
-    this.alpha = Math.min(1, this.t*8) * Math.max(0,1-(this.t-0.88)/0.12);
-    if(this.t>=1) this.reset();
+    this.t+=this.speed;
+    this.alpha=Math.min(1,this.t*8)*Math.max(0,1-(this.t-0.85)/0.15);
+    if(this.t>=1)this.reset();
   }
-
-  getPos(){
-    const cw=canvas.width, ch=canvas.height;
-    // Approximate nephron path as a series of waypoints
-    const nx = cw*0.58, ny = ch*0.18;
-    const t = this.t;
-
-    if(this.type==='filtrate'){
-      if(!this.willReab){
-        // Goes all the way down to "urine" exit
-        return pathAlong([
-          {x:nx,y:ny},
-          {x:nx+cw*.04,y:ny+ch*.1},
-          {x:nx-cw*.04,y:ny+ch*.18},
-          {x:nx,y:ny+ch*.30},
-          {x:nx-cw*.08,y:ny+ch*.42},
-          {x:nx-cw*.06,y:ny+ch*.52},
-          {x:nx+cw*.02,y:ny+ch*.55},
-          {x:nx+cw*.04,y:ny+ch*.75}
-        ], t);
-      } else {
-        // Gets reabsorbed — goes partway then curves back towards blood side
-        const t2 = Math.min(t*2, 1);
-        const t1 = Math.max(0, t*2-1);
-        if(t < 0.5){
-          return pathAlong([
-            {x:nx,y:ny},
-            {x:nx+cw*.03,y:ny+ch*.1},
-            {x:nx-cw*.03,y:ny+ch*.18}
-          ], t2);
-        } else {
-          return pathAlong([
-            {x:nx-cw*.03,y:ny+ch*.18},
-            {x:nx-cw*.12,y:ny+ch*.12},
-            {x:nx-cw*.18,y:ny+ch*.08}
-          ], t1);
-        }
+  pos(){
+    const cw=pcv.width,ch=pcv.height;
+    if(this.type==='blood'){
+      const a=this.t*Math.PI*1.5-0.3,r=cw*0.045;
+      return{x:cw*WPT[0].x+Math.cos(a)*r,y:ch*WPT[0].y+Math.sin(a)*r*.7};
+    }
+    if(!this.willReab){
+      const segs=WPT.length-1;
+      const si=Math.min(Math.floor(this.t*segs),segs-1);
+      const lt=this.t*segs-si;
+      const a=WPT[si],b=WPT[Math.min(si+1,WPT.length-1)];
+      return{x:cw*(a.x+(b.x-a.x)*lt),y:ch*(a.y+(b.y-a.y)*lt)};
+    }else{
+      const half=Math.floor(WPT.length/2);
+      if(this.t<0.5){
+        const t2=this.t*2,si=Math.min(Math.floor(t2*(half-1)),half-1),lt=t2*(half-1)-si;
+        const a=WPT[si],b=WPT[Math.min(si+1,WPT.length-1)];
+        return{x:cw*(a.x+(b.x-a.x)*lt),y:ch*(a.y+(b.y-a.y)*lt)};
       }
-    } else {
-      // Blood particle goes around glomerulus
-      const angle = t * Math.PI * 1.4 - 0.2;
-      const r = cw*0.035;
-      return { x: nx + Math.cos(angle)*r, y: ny + Math.sin(angle)*r*0.7 };
+      const t1=(this.t-0.5)*2,sx=cw*WPT[half].x,sy=ch*WPT[half].y;
+      return{x:sx+(cw*0.25-sx)*t1,y:sy+(ch*0.32-sy)*t1};
     }
   }
-
   draw(){
-    const pos = this.getPos();
-    pctx.save();
-    pctx.globalAlpha = this.alpha * 0.82;
-    let color;
-    if(this.type==='blood') color='rgba(255,71,87,0.9)';
-    else if(this.willReab) color='rgba(0,201,167,0.85)';
-    else color='rgba(255,165,2,0.85)';
-    pctx.beginPath();
-    pctx.arc(pos.x, pos.y, this.size, 0, Math.PI*2);
-    pctx.fillStyle=color;
-    pctx.shadowBlur=6; pctx.shadowColor=color;
-    pctx.fill();
+    const p=this.pos();
+    pctx.save();pctx.globalAlpha=this.alpha*0.82;
+    const c=this.type==='blood'?'rgba(255,23,68,.9)':this.willReab?'rgba(0,191,165,.85)':'rgba(255,234,0,.85)';
+    pctx.beginPath();pctx.arc(p.x,p.y,this.size,0,Math.PI*2);
+    pctx.fillStyle=c;pctx.shadowBlur=6;pctx.shadowColor=c;pctx.fill();
     pctx.restore();
   }
 }
 
-function pathAlong(pts, t){
-  const segs=pts.length-1;
-  const seg=Math.min(Math.floor(t*segs),segs-1);
-  const lt=(t*segs)-seg;
-  const a=pts[seg], b=pts[seg+1];
-  return {x:a.x+(b.x-a.x)*lt, y:a.y+(b.y-a.y)*lt};
+const particles=[];
+for(let i=0;i<65;i++)particles.push(new Particle());
+
+function animatePcv(){
+  if(!pcv.width)resizePcv();
+  pctx.clearRect(0,0,pcv.width,pcv.height);
+  particles.forEach(p=>{p.update();p.draw();});
+  requestAnimationFrame(animatePcv);
 }
-
-// Init particles
-for(let i=0;i<PCOUNT;i++) particles.push(new Particle());
-
-function animateParticles(){
-  if(!canvas.width){ resizeCanvas(); }
-  pctx.clearRect(0,0,canvas.width,canvas.height);
-  particles.forEach(p=>{ p.update(); p.draw(); });
-  requestAnimationFrame(animateParticles);
-}
-
-window.addEventListener('resize', resizeCanvas);
-setTimeout(()=>{ resizeCanvas(); animateParticles(); }, 200);
+window.addEventListener('resize',resizePcv);
+setTimeout(()=>{resizePcv();animatePcv();},300);
 
 // ════════════════════════════════════
-//  SLIDER EVENTS
+//  UI UPDATE
 // ════════════════════════════════════
-function bindSlider(id, key, valId, cls){
-  const el = document.getElementById(id);
-  el.addEventListener('input',function(){
-    S[key] = parseFloat(this.value);
-    document.getElementById(valId).textContent = this.value;
-    const pct = (this.value/10)*100;
-    this.style.background=`linear-gradient(90deg,var(--${cls}) 0%,var(--${cls}) ${pct}%,rgba(var(--${cls}-rgb),.2) ${pct}%,rgba(var(--${cls}-rgb),.2) 100%)`;
-    // manual color for browsers that don't support css var in range bg:
-    updateSliderBg(this, pct, cls);
-    updateUI();
+function updateUI(){
+  const p=calcPhysio();
+  const{adr,ach,renin,adh,drugs}=S;
+
+  // Heart animation speed
+  const dur=clamp(1.3-(p.hr-55)/150,0.28,1.3);
+  document.getElementById('hsvg').style.animationDuration=dur+'s';
+  document.querySelectorAll('.hring').forEach(r=>r.style.animationDuration=dur+'s');
+
+  // BPM display (large)
+  setText('bpmNum',Math.round(p.hr));
+
+  // Monitor cards
+  setText('mHR',Math.round(p.hr));
+  colorEl('mHR',p.hr,[60,100],['var(--teal)','var(--green)','var(--yellow)','var(--red)']);
+  setDelta('dHR',p.hr,BASE.hr);
+
+  setHtml('mBP',`${Math.round(p.sys)}<span style="font-size:.8rem">/</span>${Math.round(p.dia)}`);
+  const bpC=p.sys>180?'var(--red)':p.sys>140?'var(--yellow)':p.sys<90?'var(--purple)':'var(--cyan)';
+  document.getElementById('mBP').style.color=bpC;
+  setDelta('dBP',p.sys,BASE.sys);
+
+  setText('mGFR',Math.round(p.gfr));
+  colorEl('mGFR',p.gfr,[60,130],['var(--red)','var(--purple)','var(--cyan)','var(--teal)']);
+  setDelta('dGFR',p.gfr,BASE.gfr);
+
+  setText('mUrine',p.urine.toFixed(1));
+  colorEl('mUrine',p.urine,[0.5,2.5],['var(--red)','var(--teal)','var(--cyan)','var(--blue)']);
+  setDelta('dUrine',p.urine,BASE.urine);
+
+  setText('mNa',Math.round(p.naCalc));
+  colorEl('mNa',p.naCalc,[130,150],['var(--purple)','var(--orange)','var(--yellow)','var(--red)']);
+  setDelta('dNa',p.naCalc,BASE.na);
+
+  setText('mK',p.kCalc.toFixed(1));
+  const kOk=p.kCalc>=3.5&&p.kCalc<=5.0;
+  document.getElementById('mK').style.color=kOk?'var(--yellow)':p.kCalc>5.5||p.kCalc<3?'var(--red)':'var(--orange)';
+  setDelta('dK',p.kCalc,BASE.k);
+
+  // Heart stats panel
+  setHtml('vsBP',`${Math.round(p.sys)}/${Math.round(p.dia)}`);
+  document.getElementById('vsBP').style.color=bpC;
+  setText('vsCOx',p.co.toFixed(2));
+  setText('vsEDV',`${Math.round(p.edv)} mL`);
+  setText('vsSVx',`${Math.round(p.sv)} mL`);
+
+  // Chart Starling row
+  setText('vsSV',`${Math.round(p.edv)} mL`);
+  setText('vsCO',`${Math.round(p.sv)} mL`);
+  setText('vsCOv',p.co.toFixed(2)+' L/m');
+
+  // Frank-Starling bar + SVG lines
+  const fsP=clamp(p.fsPct,0,100);
+  document.getElementById('fsFill').style.width=fsP+'%';
+  setText('fsVal',fsP+'%');
+  const fsStr=clamp((p.edv-120)/80*0.88,0,0.88);
+  ['fsl1','fsl2'].forEach(id=>document.getElementById(id).setAttribute('stroke',`rgba(255,234,0,${fsStr})`));
+
+  // Sidebar Starling
+  setText('edvV',`${Math.round(p.edv)} mL`);
+  setText('svV',`${Math.round(p.sv)} mL`);
+  setText('coV',`${p.co.toFixed(2)} L/min`);
+
+  // Nephron panel stats
+  setText('npGFR',Math.round(p.gfr));
+  document.getElementById('npGFR').style.color=p.gfr<60?'var(--red)':p.gfr>160?'var(--cyan)':'var(--purple)';
+  setText('npReab',p.reab.toFixed(1)+'%');
+  setText('npOsm',`${Math.round(p.urineOsm)} mOsm`);
+  document.getElementById('npOsm').style.color=p.urineOsm>800?'var(--red)':p.urineOsm>500?'var(--yellow)':'var(--purple)';
+  setText('npAQP',adh>2?'نشط':'غير نشط');
+  document.getElementById('npAQP').style.color=adh>2?'var(--cyan)':'var(--t2)';
+  setText('npUrine',p.urine.toFixed(1));
+  document.getElementById('npUrine').style.color=p.urine<0.4?'var(--red)':p.urine>3?'var(--cyan)':'var(--green)';
+
+  // ADH on nephron SVG
+  const adhO=0.04+(adh/10)*0.48;
+  const ar=document.getElementById('adhRect');
+  ar.setAttribute('fill',`rgba(41,121,255,${adhO})`);ar.setAttribute('stroke',`rgba(0,229,255,${adhO*2.5})`);
+  document.getElementById('aldoTag').setAttribute('fill',`rgba(255,234,0,${p.aldoLvl>0.2?0.88:0})`);
+  document.getElementById('kWarnTxt').setAttribute('fill',p.kCalc>5.5||p.kCalc<2.8?'rgba(255,23,68,.92)':'rgba(255,23,68,0)');
+
+  // ADH sidebar
+  setText('adhV',S.adh);
+  setText('ecAQP',adh>2?'نشط':'غير نشط');
+  document.getElementById('ecAQP').style.color=adh>2?'var(--cyan)':'var(--t2)';
+  const osmStr=`${Math.round(p.urineOsm)} mOsm`;
+  setText('ecOsm',osmStr);
+  document.getElementById('ecOsm').style.color=p.urineOsm>800?'var(--red)':p.urineOsm>500?'var(--yellow)':'var(--purple)';
+
+  // BMR / sweat
+  setText('bmrV',`${p.bmr} kcal`);
+  setText('sweatV',p.sweat);
+  document.getElementById('sweatV').style.color=p.sweat==='طبيعي'?'var(--teal)':p.sweat==='معتدل'?'var(--yellow)':'var(--red)';
+
+  // Acid-base
+  setText('acidSt',p.acidStatus);
+  document.getElementById('acidSt').style.color=p.acidStatus==='طبيعي'?'var(--green)':p.acidStatus.includes('حماض')?'var(--red)':'var(--orange)';
+
+  // K cardiac
+  setText('kCardV',p.kCard);
+  document.getElementById('kCardV').style.color=kOk?'var(--green)':p.kCalc>5.5||p.kCalc<2.8?'var(--red)':'var(--orange)';
+
+  // RAAS chain
+  ['rnv0','rnv1','rnv2'].forEach(id=>{
+    const v=p.lvl[p.ri];setText(id,v);
+    document.getElementById(id).style.color=v==='مرتفع'?'var(--red)':v==='متوسط'?'var(--yellow)':'var(--teal)';
   });
+  ['rn0','rn1','rn2'].forEach(id=>document.getElementById(id).classList.toggle('lit',p.raasAuto>0.25));
+  setText('vasoV',p.angioII>0.5?'مرتفع — تضيق وعائي':p.angioII>0.2?'خفيف':'لا يوجد');
+  document.getElementById('vasoV').style.color=p.angioII>0.5?'var(--red)':p.angioII>0.2?'var(--yellow)':'var(--teal)';
+  setText('naAbsV',p.aldoLvl>0.5?'مرتفع جداً':p.aldoLvl>0.25?'متوسط':'طبيعي');
+  document.getElementById('naAbsV').style.color=p.aldoLvl>0.5?'var(--red)':p.aldoLvl>0.25?'var(--yellow)':'var(--orange)';
+
+  // Homeostasis bars
+  setPB('pf1','pp1',p.raasPct,'var(--yellow)');
+  setPB('pf2','pp2',p.adhPct,'var(--blue)');
+  setPB('pf3','pp3',p.symPct,'var(--red)');
+  setPB('pf4','pp4',p.fsPct,'var(--cyan)');
+
+  const hb=document.getElementById('hbBar'),ht=document.getElementById('hbTxt');
+  const hs=document.getElementById('hStatePill');
+  hb.className='hb';
+  if(p.hState==='ok'){hb.classList.add('hb-ok');ht.textContent='النظام في توازن مستقر';hs.textContent='⚖ Homeostasis: مستقر';hs.className='chip chip-state';}
+  else if(p.hState==='comp'){hb.classList.add('hb-comp');ht.textContent='الجسم يحاول التعويض الذاتي';hs.textContent='⚠ يُحاول التعويض';hs.className='chip chip-state';}
+  else{hb.classList.add('hb-fail');ht.textContent='فشل التعويض — تدخل علاجي مطلوب';hs.textContent='🚨 فشل الهوميوستاسيس';hs.className='chip chip-state crit';}
+
+  // Alert
+  let msg='',cls='';
+  if(p.kCalc>6.5){msg='⚡ فرط بوتاسيوم خطير — خطر توقف القلب! (Hyperkalemia >6.5 mEq/L)';cls='as-crit';}
+  else if(p.kCalc<2.5){msg='⚡ نقص بوتاسيوم حاد — خطر رجفان بطيني! (Hypokalemia <2.5 mEq/L)';cls='as-crit';}
+  else if(p.sys>195){msg='🚨 أزمة ارتفاع ضغط الدم — Hypertensive Crisis (>195 mmHg)';cls='as-crit';}
+  else if(p.hr>160){msg='⚡ تسارع القلب الشديد — Severe Tachycardia (>160 BPM)';cls='as-crit';}
+  else if(p.hr<35){msg='🩺 بطء القلب الشديد — Severe Bradycardia (<35 BPM)';cls='as-crit';}
+  else if(p.gfr<15){msg='🫘 فشل كلوي وشيك — Imminent Renal Failure (GFR<15 mL/min)';cls='as-crit';}
+  else if(p.sys<70){msg='🚨 صدمة — Cardiogenic/Hypovolemic Shock (BP<70 mmHg)';cls='as-crit';}
+  else if(p.urine<0.2){msg='⚠ قلة البول الشديدة — Severe Oliguria (<0.2 mL/min)';cls='as-warn';}
+  else if(p.autoRenin){msg='🫘 الكلية تُفرز رينيناً تعويضياً — انخفاض ضغط أو نقص حجم الدم';cls='as-info';}
+  else if(p.gasStress>0.8){msg='⚠ نقص أكسجين / اختلال حمضي-قاعدي — ضغط على القلب والدورة الدموية';cls='as-warn';}
+  else if(p.co<2.5){msg='💔 الناتج القلبي منخفض جداً — تحذير: صدمة قلبية وشيكة';cls='as-warn';}
+  showAlert(msg,cls);
+
+  // Charts push
+  d1.bpm.shift();d1.bpm.push(p.hr+rnd(1.5));
+  d1.sys.shift();d1.sys.push(p.sys+rnd(1.5));
+  d1.co.shift();d1.co.push(p.co*10+rnd(0.5));
+  ch1.update('none');
+  d2.gfr.shift();d2.gfr.push(p.gfr+rnd(1));
+  d2.ur.shift();d2.ur.push(p.urine*20+rnd(0.5));
+  d2.na.shift();d2.na.push(p.naCalc*0.85+rnd(0.5));
+  d2.kk.shift();d2.kk.push(p.kCalc*25+rnd(0.5));
+  ch2.update('none');
+
+  // Particles
+  pSt.urine=p.urine;pSt.reab=p.reab;
+
+  updateInsight(p);
 }
 
-const colorMap = {
-  'sldr-red':   ['#ff4757','rgba(255,71,87,.18)'],
-  'sldr-cyan':  ['#00e5ff','rgba(0,229,255,.15)'],
-  'sldr-gold':  ['#ffa502','rgba(255,165,2,.18)'],
-  'sldr-blue':  ['#1e90ff','rgba(30,144,255,.18)'],
-  'sldr-purple':['#a55eea','rgba(165,94,234,.18)'],
+// Helpers
+function setText(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function setHtml(id,v){const e=document.getElementById(id);if(e)e.innerHTML=v;}
+function colorEl(id,v,range,cols){
+  const e=document.getElementById(id);if(!e)return;
+  const[lo,hi]=range;
+  e.style.color=v<lo*0.7?cols[0]:v<lo?cols[0]:v<=hi?cols[1]:v<=hi*1.2?cols[2]:cols[3];
+}
+function setDelta(id,cur,base){
+  const e=document.getElementById(id);if(!e)return;
+  const d=cur-base;
+  if(Math.abs(d)<0.5){e.className='mon-d d-eq';e.textContent='—';return;}
+  if(d>0){e.className='mon-d d-up';e.textContent='+'+d.toFixed(1);}
+  else{e.className='mon-d d-dn';e.textContent=d.toFixed(1);}
+}
+function setPB(fid,pid,pct,col){
+  pct=clamp(pct,0,100);
+  const f=document.getElementById(fid);if(!f)return;
+  f.style.width=pct+'%';f.style.background=col;
+  const p=document.getElementById(pid);if(p)p.textContent=pct+'%';
+}
+
+let _alertMsg='';
+function showAlert(msg,cls){
+  const el=document.getElementById('alertStrip');
+  if(!msg||alertDismissed){el.classList.remove('show');return;}
+  if(msg===_alertMsg)return;
+  _alertMsg=msg;el.className='astrip show '+cls;
+  document.getElementById('alertMsg').textContent=msg;
+}
+function dismissAlert(){alertDismissed=true;document.getElementById('alertStrip').classList.remove('show');}
+setInterval(()=>{alertDismissed=false;},4000);
+
+// ════════════════════════════════════
+//  INSIGHT ENGINE — full v4 logic
+// ════════════════════════════════════
+function updateInsight(p){
+  const{adr,ach,renin,adh,drugs,o2,ph,co2,vol}=S;
+  const tEl=document.getElementById('insTitle'),bEl=document.getElementById('insBody'),mEl=document.getElementById('mflow');
+  const none=!adr&&!ach&&!renin&&!adh&&vol>=4.8&&!drugs.ace&&!drugs.dig&&!drugs.fur&&!drugs.beta&&S.na===140&&S.k===4.0&&o2>=97&&Math.abs(ph-7.4)<0.05;
+  if(none){
+    tEl.textContent='الحالة الطبيعية — Homeostasis مستقر';
+    bEl.innerHTML='توازن فسيولوجي كامل. <strong>SA Node</strong>: <span class="hl-r">75 BPM</span>. GFR = <span class="hl-p">120 mL/min</span>. RAAS وADH في حالة راحة. K⁺ = <span class="hl-y">4.0 mEq/L</span>. البول = <span class="hl-t">1.0 mL/min</span>.';
+    mEl.innerHTML='<span class="mf mf-n">راحة</span><span class="mf-arr">←</span><span class="mf mf-c">SA:75BPM</span><span class="mf-arr">←</span><span class="mf mf-p">GFR:120</span><span class="mf-arr">←</span><span class="mf mf-g">بول:1مل/د</span>';
+    return;
+  }
+  let t='',b='',f='';
+  if(adr>=ach&&adr>0){
+    if(adr>=7){t='جرعة عالية — أدرينالين (Sympathetic Storm)';b=`<strong>β1</strong> في SA Node: <span class="hl-r">↑↑ BPM + انقباضية</span>. <strong>α1</strong>: تضيق وعائي كلوي → <span class="hl-r">↓ GFR</span>. <span class="hl-y">RAAS</span> يُنشَّط عبر JG Cells.`;f='<span class="mf mf-r">أدرينالين↑↑</span><span class="mf-arr">←</span><span class="mf mf-r">β1↑BPM</span><span class="mf-arr">←</span><span class="mf mf-r">α1:تضيق</span><span class="mf-arr">←</span><span class="mf mf-y">RAAS↑</span><span class="mf-arr">←</span><span class="mf mf-r">↓GFR</span>';}
+    else{t='تنشيط الجهاز الودي — Sympathetic Activation';b=`الأدرينالين يرتبط بـ<strong>β1</strong> في SA Node مُسرِّعاً إزالة الاستقطاب. <span class="hl-y">Frank-Starling</span>: ↑ SV = <span class="hl-c">${Math.round(p.sv)} mL</span> → CO = <span class="hl-g">${p.co.toFixed(1)} L/min</span>. RAAS يبدأ تنشيطاً تدريجياً.`;f='<span class="mf mf-r">أدرينالين</span><span class="mf-arr">←</span><span class="mf mf-r">β1:↑HR+BP</span><span class="mf-arr">←</span><span class="mf mf-y">RAAS↑</span><span class="mf-arr">←</span><span class="mf mf-g">↓بول</span>';}
+  }else if(ach>adr&&ach>0){
+    t='تنشيط نظير الودي — Parasympathetic (Vagal)';
+    b=`الأستيل كولين يرتبط بـ<strong>M2</strong> في SA Node مُفتحاً <span class="hl-c">قنوات K⁺ (I_K)</span> → ↓ ميل إزالة الاستقطاب → <span class="hl-c">↓ BPM = ${Math.round(p.hr)}</span>. AV Node: تمديد فترة الجموح.`;
+    f='<span class="mf mf-c">أستيل كولين</span><span class="mf-arr">←</span><span class="mf mf-c">M2:↑K⁺↓BPM</span><span class="mf-arr">←</span><span class="mf mf-c">↓BP</span><span class="mf-arr">←</span><span class="mf mf-y">RAAS تعويضي</span>';
+  }else if(renin>0){
+    t='محور RAAS منشَّط — Renin-Angiotensin-Aldosterone';
+    b=`الرينين → <span class="hl-y">أنجيوتنسين II</span> (ACE في الرئتين) → تضيق وعائي + ↑ ألدوستيرون → امتصاص <span class="hl-o">Na⁺</span> في DCT → ↑ BP = <span class="hl-c">${Math.round(p.sys)}/${Math.round(p.dia)} mmHg</span>.`;
+    f='<span class="mf mf-y">رينين↑</span><span class="mf-arr">←</span><span class="mf mf-y">أنجيو II</span><span class="mf-arr">←</span><span class="mf mf-r">تضيق</span><span class="mf-arr">←</span><span class="mf mf-o">Na⁺↑</span><span class="mf-arr">←</span><span class="mf mf-g">↑BP↓بول</span>';
+  }else if(adh>0){
+    t='هرمون ADH — Antidiuretic Hormone (Vasopressin)';
+    b=`ADH يُنشِّط <strong>Aquaporin-2 (AQP-2)</strong> في القنوات الجامعة → ↑ نفاذية الماء → تركيز البول = <span class="hl-p">${Math.round(p.urineOsm)} mOsm</span>. إعادة امتصاص = <span class="hl-t">${p.reab.toFixed(1)}%</span> → بول = <span class="hl-g">${p.urine.toFixed(1)} mL/min</span>.`;
+    f='<span class="mf mf-c">ADH↑</span><span class="mf-arr">←</span><span class="mf mf-c">AQP-2</span><span class="mf-arr">←</span><span class="mf mf-p">↑نفاذية</span><span class="mf-arr">←</span><span class="mf mf-t">بول مركَّز</span><span class="mf-arr">←</span><span class="mf mf-g">↓حجم بول</span>';
+  }else if(vol>6||S.fluid>0){
+    t='زيادة الحمل القبلي — Frank-Starling Mechanism';
+    b=`↑ حجم الدم → ↑ EDV = <span class="hl-y">${Math.round(p.edv)} mL</span> → <strong>Frank-Starling</strong>: ↑ شد عضلي → SV = <span class="hl-c">${Math.round(p.sv)} mL</span> → CO = <span class="hl-g">${p.co.toFixed(1)} L/min</span>. GFR يرتفع → RAAS يُثبَّط → ↑ بول.`;
+    f='<span class="mf mf-y">↑حجم دم</span><span class="mf-arr">←</span><span class="mf mf-y">↑EDV</span><span class="mf-arr">←</span><span class="mf mf-y">Frank-Starling</span><span class="mf-arr">←</span><span class="mf mf-p">↑GFR</span><span class="mf-arr">←</span><span class="mf mf-g">↑بول</span>';
+  }else if(S.k<3.5||S.k>5.0){
+    t='اضطراب البوتاسيوم — Electrolyte Imbalance K⁺';
+    b=S.k>5?`<strong>Hyperkalemia:</strong> K⁺ = <span class="hl-r">${p.kCalc.toFixed(1)} mEq/L</span> → ↓ إمكانية راحة الغشاء → <span class="hl-r">↓ BPM</span>. K⁺>6.5: خطر رجفان/توقف قلب.`:`<strong>Hypokalemia:</strong> K⁺ = <span class="hl-r">${p.kCalc.toFixed(1)} mEq/L</span> → فرط استقطاب → <span class="hl-r">↑ BPM + ضعف انقباض</span>. خطر رجفان بطيني.`;
+    f=`<span class="mf mf-y">K⁺=${p.kCalc.toFixed(1)}</span><span class="mf-arr">←</span><span class="mf mf-r">↕ غشاء خلوي</span><span class="mf-arr">←</span><span class="mf mf-r">${p.kCard}</span>`;
+  }else if(drugs.ace){
+    t='مثبط ACE — ACE Inhibitor';
+    b=`يمنع تحويل أنجيوتنسين I→II → <span class="hl-g">↓ تضيق وعائي</span> → <span class="hl-g">↓ BP = ${Math.round(p.sys)}/${Math.round(p.dia)}</span>. يُقلِّل ألدوستيرون → <span class="hl-g">↓ احتباس Na⁺</span> → <span class="hl-g">↑ GFR = ${Math.round(p.gfr)}</span>.`;
+    f='<span class="mf mf-g">ACE Inhibitor</span><span class="mf-arr">←</span><span class="mf mf-g">↓Angio II</span><span class="mf-arr">←</span><span class="mf mf-g">↓BP+↓Aldo</span><span class="mf-arr">←</span><span class="mf mf-t">↑GFR</span>';
+  }else if(drugs.fur){
+    t='فيوروسيمايد — Furosemide (Loop Diuretic)';
+    b=`يثبط <strong>NKCC2</strong> في الجزء الصاعد السميك من هنلي → <span class="hl-g">↑ بول = ${p.urine.toFixed(1)} mL/min</span>. تأثير جانبي: <span class="hl-r">↓ K⁺ = ${p.kCalc.toFixed(1)} mEq/L</span>. ↓ BP عبر ↓ حجم الدم.`;
+    f='<span class="mf mf-g">Furosemide</span><span class="mf-arr">←</span><span class="mf mf-g">↓NKCC2</span><span class="mf-arr">←</span><span class="mf mf-g">↑↑بول</span><span class="mf-arr">←</span><span class="mf mf-r">↓K⁺</span>';
+  }else if(p.gasStress>0.3){
+    t='ضغط الغازات والحموضة — Blood Gas Imbalance';
+    b=`نقص O₂ (${o2}%) أو ارتفاع CO₂ (${co2} mmHg) أو pH (${ph}) يُنبِّه المستقبلات الكيميائية → تحفيز الجهاز الودي → <span class="hl-r">↑ HR = ${Math.round(p.hr)} BPM</span> + تضيق وعائي تعويضي.`;
+    f=`<span class="mf mf-o">نقص O₂</span><span class="mf-arr">←</span><span class="mf mf-r">Chemoreceptors</span><span class="mf-arr">←</span><span class="mf mf-r">ودي↑</span><span class="mf-arr">←</span><span class="mf mf-r">↑HR+BP</span>`;
+  }else{
+    t='تأثيرات مركبة متداخلة';
+    b=`المحصلة: HR=<span class="hl-r">${Math.round(p.hr)}</span>, BP=<span class="hl-c">${Math.round(p.sys)}/${Math.round(p.dia)}</span>, GFR=<span class="hl-p">${Math.round(p.gfr)}</span>, Urine=<span class="hl-t">${p.urine.toFixed(1)}</span>, K⁺=<span class="hl-y">${p.kCalc.toFixed(1)}</span>.`;
+    f=`<span class="mf mf-n">متعدد</span><span class="mf-arr">←</span><span class="mf mf-r">HR:${Math.round(p.hr)}</span><span class="mf-arr">←</span><span class="mf mf-p">GFR:${Math.round(p.gfr)}</span>`;
+  }
+  tEl.textContent=t;bEl.innerHTML=b;mEl.innerHTML=f;
+}
+
+// ════════════════════════════════════
+//  SLIDER WIRING
+// ════════════════════════════════════
+const slColors={
+  adrS:['#ff1744','rgba(255,23,68,.18)'],achS:['#00e5ff','rgba(0,229,255,.15)'],
+  o2S:['#00e676','rgba(0,230,118,.15)'],co2S:['#ff6d00','rgba(255,109,0,.15)'],
+  phS:['#d500f9','rgba(213,0,249,.15)'],thyS:['#d500f9','rgba(213,0,249,.15)'],
+  tempS:['#ff6d00','rgba(255,109,0,.15)'],volS:['#ffea00','rgba(255,234,0,.15)'],
+  renS:['#ffea00','rgba(255,234,0,.15)'],adhS:['#2979ff','rgba(41,121,255,.18)'],
+  naS:['#ff6d00','rgba(255,109,0,.15)'],kS:['#ffea00','rgba(255,234,0,.15)'],
 };
-function updateSliderBg(el, pct, clsKey){
-  const colors = colorMap[clsKey] || ['#888','rgba(128,128,128,.2)'];
-  el.style.background=`linear-gradient(90deg,${colors[0]} 0%,${colors[0]} ${pct}%,${colors[1]} ${pct}%,${colors[1]} 100%)`;
+function slBg(el){
+  const c=slColors[el.id]||['#aaa','rgba(128,128,128,.2)'];
+  const mn=parseFloat(el.min),mx=parseFloat(el.max),v=parseFloat(el.value),p=((v-mn)/(mx-mn))*100;
+  el.style.background=`linear-gradient(90deg,${c[0]} 0%,${c[0]} ${p}%,${c[1]} ${p}%,${c[1]} 100%)`;
 }
+function wireSl(id,key,vid,decs){
+  const el=document.getElementById(id);if(!el)return;
+  el.addEventListener('input',function(){
+    S[key]=parseFloat(this.value);
+    setText(vid,decs?parseFloat(this.value).toFixed(decs):this.value);
+    slBg(el);alertDismissed=false;_alertMsg='';updateUI();
+  });
+  slBg(el);
+}
+wireSl('adrS','adr','adrV');wireSl('achS','ach','achV');
+wireSl('o2S','o2','o2V');wireSl('co2S','co2','co2V');wireSl('phS','ph','phV',2);
+wireSl('thyS','thy','thyV');wireSl('tempS','temp','tempV',1);wireSl('volS','vol','volV',1);
+wireSl('renS','renin','renV');wireSl('adhS','adh','adhV');
+wireSl('naS','na','naSlV');wireSl('kS','k','kSlV',1);
 
-bindSlider('adrS','adr','adrV','sldr-red');
-bindSlider('achS','ach','achV','sldr-cyan');
-bindSlider('reninS','renin','reninV','sldr-gold');
-bindSlider('adhS','adh','adhV','sldr-blue');
-// Mirror ADH slider display to right panel
-document.getElementById('adhS').addEventListener('input',function(){
-  document.getElementById('adhVLive').textContent = this.value;
-});
+// ════════════════════════════════════
+//  ACTIVITY
+// ════════════════════════════════════
+function setAct(lv,btn){
+  activityLevel=lv;
+  document.querySelectorAll('.tog').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  setText('actV',{1:'1×',2.5:'2.5×',5:'5×',8:'8×'}[lv]||lv+'×');
+  alertDismissed=false;updateUI();
+}
 
 // ════════════════════════════════════
 //  FLUID BOLUS
 // ════════════════════════════════════
 function doFluid(){
-  S.fluid = Math.min(5, S.fluid+1);
-  const bar = document.getElementById('fwBar');
-  bar.classList.remove('run');
-  void bar.offsetWidth;
-  bar.classList.add('run');
-  updateUI();
+  S.fluid=Math.min(6,S.fluid+1);S.vol=Math.min(8,S.vol+0.5);
+  const el=document.getElementById('volS');el.value=S.vol;
+  setText('volV',S.vol.toFixed(1));slBg(el);
+  const fw=document.getElementById('fwBar');fw.classList.remove('run');void fw.offsetWidth;fw.classList.add('run');
+  alertDismissed=false;_alertMsg='';updateUI();
 }
 
 // ════════════════════════════════════
-//  RESET
+//  DRUGS
 // ════════════════════════════════════
-function resetAll(){
-  S.adr=0; S.ach=0; S.renin=0; S.adh=0; S.fluid=0;
-  ['adrS','achS','reninS','adhS'].forEach(id=>{ document.getElementById(id).value=0; });
-  ['adrV','achV','reninV','adhV','adhVLive'].forEach(id=>{ document.getElementById(id).textContent='0'; });
-  const classes=['sldr-red','sldr-cyan','sldr-gold','sldr-blue'];
-  ['adrS','achS','reninS','adhS'].forEach((id,i)=>{
-    const el=document.getElementById(id);
-    const cols=colorMap[classes[i]];
-    el.style.background=`linear-gradient(90deg,${cols[0]} 0%,${cols[1]} 100%)`;
+function togDrug(d){
+  S.drugs[d]=!S.drugs[d];
+  const btn=document.getElementById({ace:'dAce',dig:'dDig',fur:'dFur',beta:'dBeta'}[d]);
+  const st=document.getElementById({ace:'stAce',dig:'stDig',fur:'stFur',beta:'stBeta'}[d]);
+  btn.classList.toggle('on',S.drugs[d]);
+  st.textContent=S.drugs[d]?'نشط ✓':'إيقاف';
+  st.style.color=S.drugs[d]?'var(--cyan)':'var(--t2)';
+  alertDismissed=false;_alertMsg='';updateUI();
+}
+
+// ════════════════════════════════════
+//  CLINICAL CASES
+// ════════════════════════════════════
+const CASES={
+  normal:{adr:0,ach:0,renin:0,adh:0,na:140,k:4.0,o2:98,co2:40,ph:7.40,thy:5,temp:37,vol:5.0,fluid:0,act:1,drugs:{ace:false,dig:false,fur:false,beta:false},name:'طبيعي'},
+  hf:    {adr:2,ach:0,renin:6,adh:6,na:132,k:4.8,o2:92,co2:46,ph:7.35,thy:4,temp:37,vol:7.0,fluid:0,act:1,drugs:{ace:false,dig:true,fur:false,beta:false},name:'فشل القلب'},
+  di:    {adr:0,ach:0,renin:0,adh:0,na:155,k:4.2,o2:98,co2:40,ph:7.40,thy:5,temp:37,vol:4.0,fluid:0,act:1,drugs:{ace:false,dig:false,fur:false,beta:false},name:'Diabetes Insipidus'},
+  ras:   {adr:0,ach:0,renin:9,adh:2,na:146,k:3.2,o2:97,co2:41,ph:7.38,thy:5,temp:37,vol:5.5,fluid:0,act:1,drugs:{ace:false,dig:false,fur:false,beta:false},name:'تضيق شريان كلوي'},
+  shock: {adr:0,ach:0,renin:7,adh:8,na:135,k:4.5,o2:90,co2:48,ph:7.28,thy:5,temp:36,vol:2.5,fluid:0,act:1,drugs:{ace:false,dig:false,fur:false,beta:false},name:'صدمة نقص حجم'},
+  ckd:   {adr:0,ach:0,renin:5,adh:4,na:138,k:6.0,o2:95,co2:44,ph:7.30,thy:4,temp:37,vol:5.8,fluid:0,act:1,drugs:{ace:true,dig:false,fur:true,beta:false},name:'فشل كلوي مزمن'},
+};
+
+function loadCase(key){
+  const c=CASES[key];if(!c)return;
+  Object.assign(S,{adr:c.adr,ach:c.ach,renin:c.renin,adh:c.adh,na:c.na,k:c.k,
+    o2:c.o2,co2:c.co2,ph:c.ph,thy:c.thy,temp:c.temp,vol:c.vol,fluid:c.fluid,drugs:{...c.drugs}});
+  activityLevel=c.act||1;
+  const mp={adrS:'adr',achS:'ach',renS:'renin',adhS:'adh',naS:'na',kS:'k',
+    o2S:'o2',co2S:'co2',phS:'ph',thyS:'thy',tempS:'temp',volS:'vol'};
+  const vp={adrS:'adrV',achS:'achV',renS:'renV',adhS:'adhV',naS:'naSlV',kS:'kSlV',
+    o2S:'o2V',co2S:'co2V',phS:'phV',thyS:'thyV',tempS:'tempV',volS:'volV'};
+  const dp={phS:2,kS:1,tempS:1,volS:1};
+  Object.keys(mp).forEach(sid=>{
+    const el=document.getElementById(sid);if(!el)return;
+    el.value=S[mp[sid]];
+    setText(vp[sid],dp[sid]?parseFloat(S[mp[sid]]).toFixed(dp[sid]):S[mp[sid]]);
+    slBg(el);
   });
-  updateUI();
+  ['ace','dig','fur','beta'].forEach(d=>{
+    const b=document.getElementById({ace:'dAce',dig:'dDig',fur:'dFur',beta:'dBeta'}[d]);
+    const st=document.getElementById({ace:'stAce',dig:'stDig',fur:'stFur',beta:'stBeta'}[d]);
+    if(!b||!st)return;
+    b.classList.toggle('on',S.drugs[d]);
+    st.textContent=S.drugs[d]?'نشط ✓':'إيقاف';
+    st.style.color=S.drugs[d]?'var(--cyan)':'var(--t2)';
+  });
+  document.querySelectorAll('.tog').forEach(b=>b.classList.toggle('on',parseFloat(b.dataset.act)===activityLevel));
+  setText('actV',{1:'1×',2.5:'2.5×',5:'5×',8:'8×'}[activityLevel]||activityLevel+'×');
+  document.querySelectorAll('.case-b').forEach(b=>b.classList.remove('on'));
+  const cb=document.getElementById('c-'+key);if(cb)cb.classList.add('on');
+  setText('caseV',c.name);
+  alertDismissed=false;_alertMsg='';updateUI();
 }
 
-// ════════════════════════════════════
-//  LIVE LOOP
-// ════════════════════════════════════
-setInterval(()=>{ updateUI(); }, 600);
+function resetAll(){loadCase('normal');}
 
-// Init
-resizeCanvas();
-updateUI();
+// ════════════════════════════════════
+//  LIVE LOOP + INIT
+// ════════════════════════════════════
+setInterval(updateUI,700);
+setTimeout(()=>{resizePcv();loadCase('normal');},400);
 </script>
 </body>
 </html>
